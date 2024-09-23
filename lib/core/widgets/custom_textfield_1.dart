@@ -40,25 +40,29 @@ class _CustomTextFieldState extends State<CustomTextField> {
       focusNode: _focusNode,
       obscureText: widget.obscureText,
       decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
         hintText: widget.hintText,
         prefixIcon: widget.prefixIcon != null
             ? Icon(
                 widget.prefixIcon,
-                color:
-                    _focusNode.hasFocus ? const Color(0xFF010C80) : Colors.grey,
+                color: _focusNode.hasFocus
+                    // ignore: prefer_const_constructors
+                    ? Color.fromARGB(255, 53, 255, 245)
+                    : Colors.grey,
               )
             : null,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(20),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(100),
           borderSide: const BorderSide(
-            color: Color(0xFF010C80),
+            color: Color.fromARGB(255, 53, 255, 245),
           ),
         ),
       ),
-      style: const TextStyle(color: Color(0xFF010C80)),
+      style: const TextStyle(color: Colors.black),
     );
   }
 }

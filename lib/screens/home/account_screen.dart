@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class OrdersPage extends StatelessWidget {
-  const OrdersPage({super.key});
+class AccountScreen extends StatelessWidget {
+  const AccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
-        child: Text('Orders Page'),
+        child: Text('Account Page'),
       ),
       backgroundColor: Colors.white,
     );

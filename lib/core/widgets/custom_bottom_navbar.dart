@@ -98,39 +98,10 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
         // OPEN - CLOSE NAVBAR BUTTON
         Positioned(
           right: 20,
-          bottom: isNavBarOpen ? 115 : 30,
+          bottom: isNavBarOpen ? 115 : 5,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              boxShadow: isNavBarOpen
-                  ? []
-                  : [
-                      const BoxShadow(
-                        color: Color(0xFF757575),
-                        offset: Offset(4.0, 4.0),
-                        blurRadius: 15.0,
-                        spreadRadius: 1.0,
-                      ),
-                      const BoxShadow(
-                        color: Colors.white,
-                        offset: Offset(-4.0, -4.0),
-                        blurRadius: 15.0,
-                        spreadRadius: 1.0,
-                      ),
-                    ],
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isNavBarOpen
-                    ? [Colors.transparent]
-                    : [
-                        const Color(0xFFEEEEEE),
-                        const Color(0xFFE0E0E0),
-                        const Color(0xFFBDBDBD),
-                        const Color(0xFF9E9E9E),
-                      ],
-                stops: isNavBarOpen ? [0] : [0.1, 0.3, 0.7, 1],
-              ),
             ),
             child: FloatingActionButton(
               elevation: 0,
@@ -140,7 +111,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
               backgroundColor: Colors.transparent,
               onPressed: _toggleNavBar,
               child: Icon(
-                isNavBarOpen ? Icons.keyboard_double_arrow_down : Icons.menu,
+                isNavBarOpen
+                    ? Icons.keyboard_double_arrow_down
+                    : Icons.keyboard_double_arrow_up,
                 color: Colors.grey[600],
               ),
             ),

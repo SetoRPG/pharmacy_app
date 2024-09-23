@@ -48,7 +48,8 @@ class PressedButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24, color: Color.fromARGB(255, 53, 255, 245)),
+            Icon(icon,
+                size: 24, color: const Color.fromARGB(255, 53, 255, 245)),
             Text(
               text,
               style: const TextStyle(
