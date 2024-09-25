@@ -64,9 +64,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
           right: 0,
           bottom: isNavBarOpen
               ? 0
-              : -115, // Move the navbar fully off-screen when closed
+              : -108, // Move the navbar fully off-screen when closed
           child: Container(
-            height: 115, // Fixed height
+            height: 108, // Fixed height
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             decoration: BoxDecoration(
               boxShadow: isNavBarOpen
@@ -98,7 +98,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
         // OPEN - CLOSE NAVBAR BUTTON
         Positioned(
           right: 20,
-          bottom: isNavBarOpen ? 115 : 5,
+          bottom: isNavBarOpen ? 108 : 5,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),

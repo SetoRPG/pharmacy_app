@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/core/widgets/custom_textfield_1.dart';
 import 'package:pharmacy_app/screens/auth/login_screen.dart';
 
@@ -14,10 +15,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'ĐĂNG KÍ TÀI KHOẢN MỚI',
-          style: TextStyle(color: Colors.white),
-        ),
+        elevation: 10, // This adds a shadow to the AppBar
+        shadowColor: Colors.black,
+        title: const CustomText(text: 'ĐĂNG KÍ TÀI KHOẢN MỚI', size: 20),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(
