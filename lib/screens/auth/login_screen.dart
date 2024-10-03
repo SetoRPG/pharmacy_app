@@ -12,6 +12,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,14 +63,16 @@ class _MyWidgetState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // EMAIL
-                    const CustomTextField(
+                    CustomTextField(
+                      controller: _emailController, //TEST
                       hintText: 'Email',
                       prefixIcon: Icons.email,
                     ),
                     const SizedBox(height: 16),
 
                     // PASSWORD
-                    const CustomTextField(
+                    CustomTextField(
+                      controller: _passController, //TEST
                       hintText: 'Mật khẩu',
                       prefixIcon: Icons.lock,
                       obscureText: true,

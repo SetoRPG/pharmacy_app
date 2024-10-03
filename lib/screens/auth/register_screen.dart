@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/core/widgets/custom_textfield_1.dart';
 import 'package:pharmacy_app/screens/auth/login_screen.dart';
@@ -11,24 +12,24 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final AuthController _authController = AuthController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 10, // This adds a shadow to the AppBar
+        elevation: 10,
         shadowColor: Colors.black,
         title: const CustomText(text: 'ĐĂNG KÍ TÀI KHOẢN MỚI', size: 20),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            );
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()));
           },
         ),
         flexibleSpace: Container(
@@ -36,10 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF20B6E8),
-                Color(0xFF16B2A5),
-              ],
+              colors: [Color(0xFF20B6E8), Color(0xFF16B2A5)],
             ),
           ),
         ),
@@ -48,54 +46,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              //LOGO
               Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: Image.asset(
-                  'assets/logo.jpg',
-                  height: 170,
-                ),
+                child: Image.asset('assets/logo.jpg', height: 170),
               ),
-
-              //FORM
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  children: [
-                    const CustomTextField(
-                      hintText: 'Họ Tên',
-                      prefixIcon: Icons.person,
-                    ),
-                    const SizedBox(height: 16),
-                    const CustomTextField(
-                      hintText: 'Email',
-                      prefixIcon: Icons.email,
-                    ),
-                    const SizedBox(height: 16),
-                    const CustomTextField(
-                      hintText: 'Số Điện Thoại',
-                      prefixIcon: Icons.phone,
-                    ),
-                    const SizedBox(height: 16),
-                    const CustomTextField(
-                      hintText: 'Mật Khẩu',
-                      prefixIcon: Icons.lock,
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 16),
-                    const CustomTextField(
-                      hintText: 'Xác Nhận Mật khẩu',
-                      prefixIcon: Icons.lock,
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 32),
-
-                    // SIGNUP BUTTON
-                    _registerButton(context),
-                  ],
-                ),
-              ),
+              _buildRegisterForm(),
             ],
           ),
         ),
@@ -103,7 +58,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Container _registerButton(BuildContext context) {
+  Widget _buildRegisterForm() {
+    return Column(
+      children: [
+        CustomTextField(
+          controller: _nameController,
+          hintText: 'Họ Tên',
+          prefixIcon: Icons.person,
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          controller: _emailController,
+          hintText: 'Email',
+          prefixIcon: Icons.email,
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          controller: _passwordController,
+          hintText: 'Mật khẩu',
+          prefixIcon: Icons.lock,
+          obscureText: true,
+        ),
+        const SizedBox(height: 32),
+        _registerButton(context, "Đăng Ký", _registerUser),
+      ],
+    );
+  }
+
+  Widget _registerButton(
+      BuildContext context, String text, Function onPressed) {
     return Container(
       decoration: const BoxDecoration(
         boxShadow: [
@@ -132,22 +115,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
         borderRadius: BorderRadius.all(Radius.circular(10.0)),
       ),
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          );
-        },
+        onPressed: () => onPressed(),
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, 50),
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
         ),
-        child: const Text(
-          'Đăng Ký',
-          style: TextStyle(color: Color.fromRGBO(92, 92, 92, 1)),
-        ),
+        child: Text(text,
+            style: const TextStyle(color: Color.fromRGBO(92, 92, 92, 1))),
       ),
     );
+  }
+
+  void _registerUser() {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+    String name = _nameController.text.trim();
+
+    _authController.signUpWithEmailPassword(email, password, name).then((user) {
+      if (user != null) {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
+      }
+    }).catchError((error) {
+      print("Error during registration: $error");
+    });
   }
 }

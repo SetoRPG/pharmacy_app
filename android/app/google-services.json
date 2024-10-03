@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "463452612456",
+    "project_id": "pharmadirect-a8570",
+    "storage_bucket": "pharmadirect-a8570.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:463452612456:android:3d23b8eaa5f2bfbec8d8dd",
+        "android_client_info": {
+          "package_name": "com.example.pharmacy_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlDbtDoMIS9hgg7y5CRKe6eLq_SEyZzmE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
