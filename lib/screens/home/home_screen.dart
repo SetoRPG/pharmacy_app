@@ -181,49 +181,85 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: _medicines.length,
               itemBuilder: (context, index) {
                 final medicine = _medicines[index];
-                return _medicineCard(medicine);
+                return _medicineCard(medicine); // Each card
               },
             ),
     );
   }
 
-  // Display each medicine in a card format
+  /// Medicine Card Widget
   Widget _medicineCard(Map<String, dynamic> medicine) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          medicine['medName'],
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
+    return Card(
+      elevation: 3,
+      margin:
+          const EdgeInsets.symmetric(horizontal: 8), // Add margin between cards
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Displaying image at the top of the card
+            Center(
+              child: Image.network(
+                _getImageUrl(medicine['medPrimaryImage']),
+                width: 130,
+                height: 130,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.error,
+                      size: 100); // Error icon if image fails to load
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Medicine name
+            Text(
+              medicine['medName'],
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis, // Truncate if too long
+            ),
+            const SizedBox(height: 6),
+
+            // Active ingredients
+            Text(
+              'Thành phần hoạt chất: ${medicine['medActiveIngredients']}',
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis, // Limit to 2 lines and truncate
+            ),
+            const SizedBox(height: 6),
+
+            // Price
+            Text(
+              'Giá: ${medicine['medCostPrice']} VND',
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+            const SizedBox(height: 6),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Thành phần hoạt chất: ${medicine['medActiveIngredients']}',
-          style: const TextStyle(fontSize: 16, color: Colors.black54),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Chỉ định: ${medicine['medIndications']}',
-          style: const TextStyle(fontSize: 16, color: Colors.black54),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Giá: ${medicine['medPrice']} VND',
-          style: const TextStyle(fontSize: 16, color: Colors.black54),
-        ),
-        const SizedBox(height: 8),
-        ElevatedButton(
-          onPressed: () {
-            // Navigate to detailed view or add to cart
-          },
-          child: const Text('Xem chi tiết'),
-        ),
-      ],
+      ),
     );
+  }
+
+// Helper function to convert gs:// URLs to HTTPS
+  String _getImageUrl(String gsUrl) {
+    const storageBaseUrl =
+        "https://storage.googleapis.com/pharmadirect-a8570.appspot.com/";
+    if (gsUrl.startsWith("gs://pharmadirect-a8570.appspot.com/")) {
+      return gsUrl.replaceFirst(
+          "gs://pharmadirect-a8570.appspot.com/", storageBaseUrl);
+    }
+    return gsUrl;
   }
 
   // Section 2: Danh mục (Categories section)
