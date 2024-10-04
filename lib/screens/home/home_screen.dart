@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -10,6 +11,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isSearching = false;
+
+  final MedicineController _medicineController = MedicineController();
+  List<Map<String, dynamic>> _medicines = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMedicines();
+  }
+
+  Future<void> _loadMedicines() async {
+    final medicines = await _medicineController.getMedicines();
+    setState(() {
+      _medicines = medicines;
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,27 +131,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 10.0, right: 10),
-        child: ListView(
-          children: [
-            const SizedBox(height: 40),
-            _buildIntroductionSection(),
-            const SizedBox(height: 40),
-            _buildCategoriesSection(),
-            const SizedBox(height: 40),
-            _buildPromotionsSection(),
-            const SizedBox(height: 40),
-            _buildAboutUsSection(),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.only(left: 10.0, right: 10),
+              child: ListView(
+                children: [
+                  const SizedBox(height: 40),
+                  _buildIntroductionSection(),
+                  const SizedBox(height: 40),
+                  _buildCategoriesSection(),
+                  const SizedBox(height: 40),
+                  _buildPromotionsSection(),
+                  const SizedBox(height: 40),
+                  _buildAboutUsSection(),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
       backgroundColor: Colors.white,
     );
   }
 
-  // Section 1: Giới thiệu thuốc (Medicine introduction)
+  /// Section 1: Giới thiệu thuốc (Medicine introduction)
   Widget _buildIntroductionSection() {
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -151,31 +173,56 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Giới thiệu thuốc',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+      height: 300, // Adjust the height for better swiping experience
+      child: _medicines.isEmpty
+          ? const Center(child: Text("No medicines available"))
+          : PageView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _medicines.length,
+              itemBuilder: (context, index) {
+                final medicine = _medicines[index];
+                return _medicineCard(medicine);
+              },
             ),
+    );
+  }
+
+  // Display each medicine in a card format
+  Widget _medicineCard(Map<String, dynamic> medicine) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          medicine['medName'],
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Paracetamol - Thuốc giảm đau và hạ sốt.',
-            style: TextStyle(fontSize: 16, color: Colors.black54),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              // Navigate to detailed view or add to cart
-            },
-            child: const Text('Xem chi tiết'),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Thành phần hoạt chất: ${medicine['medActiveIngredients']}',
+          style: const TextStyle(fontSize: 16, color: Colors.black54),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Chỉ định: ${medicine['medIndications']}',
+          style: const TextStyle(fontSize: 16, color: Colors.black54),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Giá: ${medicine['medPrice']} VND',
+          style: const TextStyle(fontSize: 16, color: Colors.black54),
+        ),
+        const SizedBox(height: 8),
+        ElevatedButton(
+          onPressed: () {
+            // Navigate to detailed view or add to cart
+          },
+          child: const Text('Xem chi tiết'),
+        ),
+      ],
     );
   }
 

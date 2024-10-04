@@ -134,8 +134,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     _authController.signUpWithEmailPassword(email, password, name).then((user) {
       if (user != null) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()));
+        // Inform the user to check their email for verification
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'A verification email has been sent to $email. Please verify your email.')),
+        );
+
+        // Optionally, check if the email is verified after some time
+        _authController.isEmailVerified(user).then((isVerified) {
+          if (isVerified) {
+            // Email verified, proceed with login or other actions
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => LoginScreen()));
+          } else {
+            // Handle case where the email is not verified
+            print("Email is not verified yet.");
+          }
+        });
       }
     }).catchError((error) {
       print("Error during registration: $error");

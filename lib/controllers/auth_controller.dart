@@ -1,9 +1,23 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Step 1: Register user with email and password
+  // Custom ID generator
+  String _generateCustomId() {
+    final now = DateTime.now();
+    String datePart =
+        "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
+    String randomPart = (Random().nextInt(90) + 10)
+        .toString(); // Generates a number between 10 and 99
+    return "CUS$datePart$randomPart";
+  }
+
+  // Step 1: Register user with email and password and send email verification
   Future<User?> signUpWithEmailPassword(
       String email, String password, String userName) async {
     try {
@@ -15,10 +29,27 @@ class AuthController {
       User? user = userCredential.user;
 
       if (user != null) {
-        // Update display name for the user
+        // Send email verification
+        await user.sendEmailVerification();
+
+        // Create custom ID and save user to Firestore
+        String customId = _generateCustomId();
+        await _firestore.collection("users").doc(customId).set({
+          'id': customId,
+          'name': userName,
+          'email': email,
+          'password': password, // Consider encrypting the password
+          'createdAt': FieldValue.serverTimestamp(),
+          'emailVerified': false,
+        });
+
+        // Update display name in Firebase Auth
         await user.updateDisplayName(userName);
-        await user.reload(); // Reload the user to apply display name changes
-        user = _auth.currentUser; // Get updated user info
+        await user.reload();
+        user = _auth.currentUser;
+
+        // You can notify the user to check their email for verification
+        print("Verification email sent to ${user?.email}");
       }
       return user;
     } on FirebaseAuthException catch (e) {
@@ -27,5 +58,19 @@ class AuthController {
     }
   }
 
-  // Additional methods for sign in, password change, etc. will be added later
+  // Step 2: Check if email is verified
+  Future<bool> isEmailVerified(User? user) async {
+    if (user != null) {
+      await user.reload(); // Refresh the user's info
+      return user.emailVerified;
+    }
+    return false;
+  }
+
+  // Step 3: Resend verification email
+  Future<void> resendVerificationEmail(User? user) async {
+    if (user != null && !user.emailVerified) {
+      await user.sendEmailVerification();
+    }
+  }
 }
