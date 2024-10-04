@@ -73,4 +73,26 @@ class AuthController {
       await user.sendEmailVerification();
     }
   }
+
+  // Step 4: Sign in with email and password
+  Future<User?> signInWithEmailPassword(String email, String password) async {
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      User? user = userCredential.user;
+      if (user != null && user.emailVerified) {
+        // Email is verified
+        return user;
+      } else {
+        // Email not verified or user is null
+        print("Email not verified. Please check your email.");
+        return null;
+      }
+    } on FirebaseAuthException catch (e) {
+      print("Error during login: ${e.message}");
+      return null;
+    }
+  }
 }

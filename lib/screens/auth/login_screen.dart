@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/core/widgets/custom_textfield_1.dart';
 import 'package:pharmacy_app/screens/auth/register_screen.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +16,51 @@ class LoginScreen extends StatefulWidget {
 class _MyWidgetState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final AuthController _authController = AuthController();
+  bool _isLoading = false; // For loading indicator
+
+  // Function to handle login
+  Future<void> _login(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    String email = _emailController.text.trim();
+    String password = _passController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter both email and password")),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    User? user = await _authController.signInWithEmailPassword(email, password);
+
+    if (user != null) {
+      // Login successful, navigate to the home screen or wherever you want
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const BaseFrame(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                "Login failed. Please check your credentials and email verification.")),
+      );
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +111,7 @@ class _MyWidgetState extends State<LoginScreen> {
                   children: [
                     // EMAIL
                     CustomTextField(
-                      controller: _emailController, //TEST
+                      controller: _emailController,
                       hintText: 'Email',
                       prefixIcon: Icons.email,
                     ),
@@ -72,7 +119,7 @@ class _MyWidgetState extends State<LoginScreen> {
 
                     // PASSWORD
                     CustomTextField(
-                      controller: _passController, //TEST
+                      controller: _passController,
                       hintText: 'Mật khẩu',
                       prefixIcon: Icons.lock,
                       obscureText: true,
@@ -148,24 +195,23 @@ class _MyWidgetState extends State<LoginScreen> {
         borderRadius: BorderRadius.all(Radius.circular(10.0)),
       ),
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const BaseFrame()),
-          );
-        },
+        onPressed: _isLoading
+            ? null // Disable button when loading
+            : () => _login(context),
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, 50),
           backgroundColor:
               Colors.transparent, // Transparent to show the gradient
           shadowColor: Colors.transparent, // Disable default button shadow
         ),
-        child: const Text(
-          'Đăng nhập',
-          style: TextStyle(
-            color: Color.fromRGBO(92, 92, 92, 1), // Text color
-          ),
-        ),
+        child: _isLoading
+            ? const CircularProgressIndicator() // Show loading indicator
+            : const Text(
+                'Đăng nhập',
+                style: TextStyle(
+                  color: Color.fromRGBO(92, 92, 92, 1), // Text color
+                ),
+              ),
       ),
     );
   }
