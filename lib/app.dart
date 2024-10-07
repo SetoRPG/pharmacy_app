@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/screens/auth/login_screen.dart';
 import 'package:pharmacy_app/screens/detail/chi_tiet_sp.dart';
+import 'package:pharmacy_app/screens/detail/thong_tin_ca_nhan.dart';
 import 'package:pharmacy_app/screens/detail/xem_chi_tiet_sp.dart';
 
 class MyApp extends StatelessWidget {
@@ -10,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      home: UserProfileScreen(),
     );
   }
 }
