@@ -1,19 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_app/controllers/order_controller.dart';
+import 'package:pharmacy_app/screens/home/base_frame.dart';
+import 'package:pharmacy_app/screens/home/home_screen.dart';
+import 'package:pharmacy_app/screens/home/orders_sreeen.dart';
 
 class PaymentPage extends StatefulWidget {
-  const PaymentPage({super.key});
+  final String productName;
+  final double productPrice;
+  final int buyingQuantity;
+
+  const PaymentPage({
+    super.key,
+    required this.productName,
+    required this.productPrice,
+    required this.buyingQuantity,
+  });
 
   @override
   _PaymentPageState createState() => _PaymentPageState();
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  double productPrice = 171600; // Giá sản phẩm gốc
+  final OrderController _orderController =
+      OrderController(); // Initialize OrderController
   double discount = 0; // Giảm giá mặc định là 0
-  double totalPrice = 171600; // Tổng giá ban đầu là giá sản phẩm
+  double totalPrice = 0; // Tổng giá ban đầu
   String selectedPromoCode = ''; // Mã khuyến mãi đã chọn
   String note = ''; // Ghi chú của người dùng
   String selectedPaymentMethod = 'COD'; // Phương thức thanh toán đã chọn
+
+  @override
+  void initState() {
+    super.initState();
+    totalPrice =
+        widget.productPrice * widget.buyingQuantity; // Tổng tiền ban đầu
+  }
+
+  // Hàm áp dụng mã khuyến mãi
+  void applyPromoCode(String code, double discountPercentage) {
+    setState(() {
+      selectedPromoCode = code;
+      discount = discountPercentage *
+          (widget.productPrice * widget.buyingQuantity); // Tính giảm giá
+      totalPrice = (widget.productPrice * widget.buyingQuantity) -
+          discount; // Cập nhật tổng tiền sau giảm giá
+    });
+  }
 
   // Danh sách mã khuyến mãi
   final List<Map<String, dynamic>> promoCodes = [
@@ -42,15 +74,6 @@ class _PaymentPageState extends State<PaymentPage> {
     'Visa',
     'Mastercard',
   ];
-
-  // Hàm áp dụng mã khuyến mãi
-  void applyPromoCode(String code, double discountPercentage) {
-    setState(() {
-      selectedPromoCode = code;
-      discount = discountPercentage * productPrice; // Tính giảm giá
-      totalPrice = productPrice - discount; // Tính tổng tiền sau giảm giá
-    });
-  }
 
   // Hiển thị danh sách mã khuyến mãi
   void showPromoCodeBottomSheet() {
@@ -110,22 +133,25 @@ class _PaymentPageState extends State<PaymentPage> {
             // Thông tin sản phẩm
             ListTile(
               leading: Image.asset(
-                'assets/img2.jpg',
+                'assets/img2.jpg', // Example image
                 height: 60,
                 width: 60,
               ),
-              title: const Text(
-                'Combo Sữa Rửa Mặt SIMPLE Refreshing Facial Wash 100% Soap Free',
+              title: Text(
+                widget.productName,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              subtitle: const Text('Phân loại: Bộ'),
-              trailing: const Text(
-                '171.600 ₫',
-                style:
-                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              subtitle: Text('Số lượng: ${widget.buyingQuantity}'),
+              trailing: Text(
+                '${(widget.productPrice).toStringAsFixed(0)} ₫',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
+
             const SizedBox(height: 16),
 
             // Phần ghi chú (thay cho mã khuyến mãi)
@@ -181,7 +207,8 @@ class _PaymentPageState extends State<PaymentPage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
-            _buildPaymentDetailRow('Tổng tiền sản phẩm', productPrice),
+            _buildPaymentDetailRow('Tổng tiền sản phẩm',
+                widget.productPrice * widget.buyingQuantity),
             _buildPaymentDetailRow('Giảm giá', -discount),
             const Divider(),
             _buildPaymentDetailRow('Tổng thanh toán', totalPrice, isBold: true),
@@ -209,8 +236,29 @@ class _PaymentPageState extends State<PaymentPage> {
             // Nút Đặt hàng
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Đặt hàng logic
+                onPressed: () async {
+                  try {
+                    // Call the createOrder function from the controller
+                    await _orderController.createOrder(
+                      productName: widget.productName,
+                      productPrice: widget.productPrice,
+                      quantity: widget.buyingQuantity,
+                      totalPrice: totalPrice,
+                      paymentMethod: selectedPaymentMethod,
+                      note: note,
+                    );
+
+                    // Show success message
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Đặt hàng thành công!')),
+                    );
+                  } catch (e) {
+                    // Show error message if something goes wrong
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Đặt hàng thất bại: $e')),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),

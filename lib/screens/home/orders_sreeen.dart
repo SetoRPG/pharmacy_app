@@ -1,24 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/home/search_results.dart';
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<Map<String, String>> orders = [
-      {"id": "123", "status": "Đang xử lý", "total": "500.000đ"},
-      {"id": "124", "status": "Đã giao", "total": "300.000đ"},
-      {"id": "125", "status": "Đã hủy", "total": "200.000đ"},
-      {"id": "126", "status": "Đang xử lý", "total": "400.000đ"},
-    ];
+  _OrdersScreenState createState() => _OrdersScreenState();
+}
 
+class _OrdersScreenState extends State<OrdersScreen> {
+  final OrderController _orderController = OrderController();
+  List<Map<String, dynamic>> _orders = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrders();
+  }
+
+  Future<void> _loadOrders() async {
+    try {
+      final orders = await _orderController.getOrdersForCurrentUser();
+      setState(() {
+        _orders = orders;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Handle error, e.g., show a snackbar or dialog
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 8, // Adds shadow to the AppBar
-        shadowColor: Colors.black, // Customize shadow color
-
+        elevation: 8,
+        shadowColor: Colors.black,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -31,7 +54,6 @@ class OrdersScreen extends StatelessWidget {
             ),
           ),
         ),
-
         title: const Center(
             child: Row(
           children: [
@@ -60,7 +82,6 @@ class OrdersScreen extends StatelessWidget {
             CustomText(text: 'ĐƠN HÀNG CỦA BẠN', size: 20),
           ],
         )),
-
         actions: [
           IconButton(
             icon: const Icon(
@@ -78,24 +99,27 @@ class OrdersScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          final order = orders[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            child: ListTile(
-              title: Text('Mã đơn hàng: ${order['id']}'),
-              subtitle: Text('Trạng thái: ${order['status']}'),
-              trailing: Text(order['total'] ?? ''),
-              onTap: () {
-                // Handle tap to show more details
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: _orders.length,
+              itemBuilder: (context, index) {
+                final order = _orders[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  child: ListTile(
+                    title: Text('Mã đơn hàng: ${order['orderId']}'),
+                    subtitle: Text('Trạng thái: ${order['status']}'),
+                    trailing: Text(
+                        '${order['total']}'), // Already includes currency symbol
+                    onTap: () {
+                      // Handle tap to show more details
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
       backgroundColor: Colors.white,
     );
   }

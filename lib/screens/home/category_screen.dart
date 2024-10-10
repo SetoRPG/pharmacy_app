@@ -165,14 +165,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
           fit: BoxFit.cover,
         ),
         title: Text(product['medName'] ?? 'Unknown Product Name'),
-       // subtitle: Text(product['medIndications'] ?? 'No Indications Provided'),
+        subtitle:
+            Text(product['medPackagingForm'] ?? 'No Indications Provided'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: const Icon(Icons.add_shopping_cart),
               onPressed: () {
-                _showProductBottomSheet(context);
+                _showProductBottomSheet(context, product);
               },
             ),
             IconButton(
@@ -216,7 +217,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return gsUrl; // If it's already in correct format
   }
 
-  void _showProductBottomSheet(BuildContext context) {
+  // Updated: _showProductBottomSheet method to accept product details
+  void _showProductBottomSheet(
+      BuildContext context, Map<String, dynamic> product) {
+    int quantity = 1;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -226,125 +230,141 @@ class _CategoryScreenState extends State<CategoryScreen> {
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/img2.jpg',
-                    height: 60,
-                    width: 60,
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Nước Tẩy Trang L'OREAL Micellar Water",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          "3-in-1 Refreshing Even For Sensitive Skin",
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        Text(
-                          "153.430 ₫",
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          "229.000 ₫",
-                          style: TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Image.network(
+                      _getImageUrl(product['medPrimaryImage']),
+                      height: 60,
+                      width: 60,
+                      fit: BoxFit.cover,
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Phân loại sản phẩm",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product['medName'] ?? 'Unknown Product',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            product['medIndications'] ?? 'No Indications',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          Text(
+                            "${product['medPrice']} ₫",
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-                child: const Text('Chai'),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Số lượng",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.remove),
-                  ),
-                  const Text('1'),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Add to cart logic
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      backgroundColor: Colors.grey[300],
+                const SizedBox(height: 20),
+                const Text(
+                  "Phân loại sản phẩm",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    // Add logic for selecting product variant
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Thêm vào giỏ'),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Chuyển đến trang thanh toán khi nhấn "Mua ngay"
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PaymentPage(),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                  child: Text(product['medCategory'] ?? 'Unknown Product'),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Số lượng",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        if (quantity > 1) {
+                          setState(() {
+                            quantity--;
+                            print(quantity);
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.remove),
                     ),
-                    child: const Text('Mua ngay'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
+                    Text('$quantity'), // Display current quantity
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          quantity++;
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Add to cart logic
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        backgroundColor: Colors.grey[300],
+                      ),
+                      child: const Text('Thêm vào giỏ hàng'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PaymentPage(
+                              productName: product['medName'],
+                              productPrice:
+                                  (product['medPrice'] as num).toDouble(),
+                              buyingQuantity: quantity,
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF002D82),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Mua ngay'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        });
       },
     );
   }
