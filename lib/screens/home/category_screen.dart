@@ -359,6 +359,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               productPrice:
                                   (product['medPrice'] as num).toDouble(),
                               buyingQuantity: quantity,
+                              img: (_getImageUrl(product['medPrimaryImage'])),
                             ),
                           ),
                         );

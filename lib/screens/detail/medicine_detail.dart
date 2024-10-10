@@ -424,6 +424,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                               productPrice:
                                   (product['medPrice'] as num).toDouble(),
                               buyingQuantity: quantity,
+                              img: (_getImageUrl(product['medPrimaryImage'])),
                             ),
                           ),
                         );

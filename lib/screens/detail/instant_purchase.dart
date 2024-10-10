@@ -8,12 +8,14 @@ class PaymentPage extends StatefulWidget {
   final String productName;
   final double productPrice;
   final int buyingQuantity;
+  final String img;
 
   const PaymentPage({
     super.key,
     required this.productName,
     required this.productPrice,
-    required this.buyingQuantity,
+    required this.buyingQuantity, 
+    required this.img,
   });
 
   @override
@@ -132,8 +134,8 @@ class _PaymentPageState extends State<PaymentPage> {
           children: [
             // Thông tin sản phẩm
             ListTile(
-              leading: Image.asset(
-                'assets/img2.jpg', // Example image
+              leading: Image.network(
+                widget.img, // Example image
                 height: 60,
                 width: 60,
               ),
@@ -151,25 +153,36 @@ class _PaymentPageState extends State<PaymentPage> {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // Phần ghi chú (thay cho mã khuyến mãi)
-            const Text(
-              'Ghi chú',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  note = value;
-                });
-              },
-              decoration: const InputDecoration(
-                hintText: 'Nhập ghi chú ở đây',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
+           Row(
+              children: [
+                const Text(
+                  'Ghi chú :',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 16), 
+                Expanded(
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        note = value;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Nhập ghi chú ở đây',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12), 
+                    ),
+                    maxLines: 1,
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
