@@ -211,7 +211,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                               onPressed: () {
                                 _showDetailsDialog();
                               },
-                              child: const Text('Xem thêm'),
+                              child: const Text('Xem thêm chi tiết'),
                             ),
                           ),
                         ],

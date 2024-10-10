@@ -6,17 +6,16 @@ class ProductSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showProductBottomSheet(context);
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Product Selection"),
       ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            _showProductBottomSheet(context);
-          },
-          child: const Text('Chọn sản phẩm'),
-        ),
+      body: const Center(
+        child: Text('Product selection page content'),
       ),
     );
   }

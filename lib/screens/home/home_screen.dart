@@ -103,113 +103,67 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.only(left: 10.0, right: 10),
-              child: ListView(
-                children: [
-                  const SizedBox(height: 40),
-                  _buildIntroductionSection(),
-                  const SizedBox(height: 40),
-                  _buildCategoriesSection(),
-                  const SizedBox(height: 40),
-                  _buildPromotionsSection(),
-                  const SizedBox(height: 40),
-                  _buildAboutUsSection(),
-                  const SizedBox(height: 40),
-                ],
-              ),
+            padding: const EdgeInsets.only(left: 0, right: 0),
+            child: ListView(
+              children: [
+                const SizedBox(height: 40),
+                // Thêm padding cho Categories
+                Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 10), // Padding cho Categories
+                  child: _buildCategoriesSection(),
+                ),
+                const SizedBox(height: 40),
+                // Không thêm padding cho PromotionsSection
+                _buildPromotionsSection(), // Promotions section không có padding
+                const SizedBox(height: 40),
+                // Thêm padding cho Introduction
+                Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 10), // Padding cho Introduction
+                  child: _buildIntroductionSection(),
+                ),
+                const SizedBox(height: 40),
+                // Thêm padding cho About Us
+                Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 10), // Padding cho About Us
+                  child: _buildAboutUsSection(),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
+          ),
+
+            
+
       backgroundColor: Colors.white,
     );
   }
 
   /// Section 1: Giới thiệu thuốc (Medicine introduction)
-  Widget _buildIntroductionSection() {
-    PageController pageController = PageController();
-    Timer? autoScrollTimer;
-
-    // Start the auto-scrolling behavior
-    void startAutoScroll() {
-      autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-        if (pageController.hasClients) {
-          int nextPage = (pageController.page?.toInt() ?? 0) + 1;
-          if (nextPage >= _medicines.length) {
-            nextPage = 0; // Loop back to the first page
-          }
-          pageController.animateToPage(
-            nextPage,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
-      });
-    }
-
-    // Cancel auto-scroll timer when not needed
-    void cancelAutoScroll() {
-      autoScrollTimer?.cancel();
-    }
-
-    @override
-    void initState() {
-      super.initState();
-      startAutoScroll(); // Start auto-scrolling when the widget is created
-    }
-
-    @override
-    void dispose() {
-      cancelAutoScroll(); // Cancel timer when widget is disposed
-      pageController.dispose();
-      super.dispose();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Thuốc bán chạy',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+Widget _buildIntroductionSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Thuốc bán chạy',
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal, // Cuộn theo chiều ngang
+        child: Row(
+          children: _medicines.map((medicine) {
+            return Container(
+              width: 160, // Chiều rộng cố định cho từng sản phẩm
+              margin: const EdgeInsets.only(right: 10), // Khoảng cách giữa các sản phẩm
+              child: _medicineCard(medicine), // Xây dựng từng card sản phẩm
+            );
+          }).toList(),
         ),
-        const SizedBox(
-          height: 10,
-        ),
-        SizedBox(
-          height: 300, // Adjust the height for better swiping experience
-          child: Stack(
-            children: [
-              // Swipeable Image Carousel
-              PageView.builder(
-                controller: pageController,
-                itemCount: _medicines.length,
-                itemBuilder: (context, index) {
-                  final medicine = _medicines[index];
-                  return _medicineCard(medicine); // Each card
-                },
-              ),
-              // SmoothPageIndicator
-              Positioned(
-                bottom: 10,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: SmoothPageIndicator(
-                    controller: pageController,
-                    count: _medicines.length,
-                    effect: const ExpandingDotsEffect(
-                      dotColor: Colors.grey,
-                      activeDotColor: Colors.blueAccent,
-                      dotHeight: 8,
-                      dotWidth: 8,
-                      expansionFactor: 2,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
   /// Medicine Card Widget
   Widget _medicineCard(Map<String, dynamic> medicine) {
@@ -266,22 +220,28 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 6),
 
-              // Active ingredients
-              Text(
-                'Thành phần hoạt chất: ${medicine['medActiveIngredients']}',
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
-                maxLines: 2,
-                overflow:
-                    TextOverflow.ellipsis, // Limit to 2 lines and truncate
-              ),
-              const SizedBox(height: 6),
+            
 
               // Price
               Text(
-                'Giá: ${medicine['medPrice']} VND',
+                '${medicine['medPrice']} đ',
                 style: const TextStyle(fontSize: 16, color: Colors.black87),
               ),
               const SizedBox(height: 6),
+               ElevatedButton(
+                  onPressed: () {
+                    // Thêm chức năng cho nút ở đây
+                  },
+                  child: const Text('Chọn sản phẩm', style: TextStyle(fontSize: 14)), // Nút nhãn
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white, // Màu chữ
+                    backgroundColor: Colors.blue, // Màu nền nút
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), // Tạo kích thước nút hợp lý
+                    shape: RoundedRectangleBorder( // Làm góc bo tròn cho nút
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                )
             ],
           ),
         ),
@@ -325,30 +285,80 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Section 3: Khuyến mãi (Promotions section)
-  Widget _buildPromotionsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
+Widget _buildPromotionsSection() {
+  // Tạo PageController
+  final PageController _pageController = PageController();
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: const Text(
           'Khuyến mãi',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 10),
-        Column(
-          children: [
-            const Text(
-              'Giảm 20% giá toàn bộ mặt hàng Vitamin trong tuần!',
-              style: TextStyle(fontSize: 16, color: Colors.black54),
+      ),
+      const SizedBox(height: 10),
+      Column(
+        children: [
+          const Text(
+            'Giảm 20% giá toàn bộ mặt hàng Vitamin trong tuần!',
+            style: TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+          const SizedBox(height: 10),
+
+          // PageView để cuộn qua các trang chứa hình ảnh
+          SizedBox(
+            height: 200, // Chiều cao của PageView
+            child: PageView(
+              controller: _pageController,
+              scrollDirection: Axis.horizontal, // Cuộn ngang
+              children: [
+                _buildImagePage('assets/sales_banner.jpg'),
+                _buildImagePage('assets/logo.jpg'),
+                _buildImagePage('assets/sales_banner.jpg'),
+                _buildImagePage('assets/logo.jpg'),
+                _buildImagePage('assets/sales_banner.jpg'),
+              ],
             ),
-            const SizedBox(
-              height: 10,
+          ),
+          const SizedBox(height: 10), // Khoảng cách giữa PageView và Indicator
+
+          // Thêm SmoothPageIndicator
+          SmoothPageIndicator(
+            controller: _pageController,
+            count: 5, // Số lượng trang
+            effect: ExpandingDotsEffect( // Kiểu hiệu ứng
+              dotHeight: 5,
+              dotWidth: 5,
+              activeDotColor: Colors.blue, // Màu dot khi được chọn
+              dotColor: Colors.grey, // Màu dot chưa được chọn
             ),
-            Image.asset('assets/sales_banner.jpg')
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+// Hàm để tạo trang cho từng ảnh trong PageView
+Widget _buildImagePage(String assetPath) {
+
+      return 
+    ClipRRect(
+
+      child: Image.asset(
+        assetPath,
+        fit: BoxFit.cover, // Ảnh vừa với khung hình
+        width: double.infinity,
+        height: 150,
+      ),
     );
-  }
+  
+}
+
+  
 
   // Section 4: Về chúng tôi (About Us section)
   Widget _buildAboutUsSection() {
@@ -400,4 +410,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+  
 }

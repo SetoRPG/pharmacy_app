@@ -165,7 +165,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           fit: BoxFit.cover,
         ),
         title: Text(product['medName'] ?? 'Unknown Product Name'),
-        subtitle: Text(product['medIndications'] ?? 'No Indications Provided'),
+       // subtitle: Text(product['medIndications'] ?? 'No Indications Provided'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
