@@ -17,9 +17,21 @@ class _PaymentPageState extends State<PaymentPage> {
 
   // Danh sách mã khuyến mãi
   final List<Map<String, dynamic>> promoCodes = [
-    {'code': 'DISCOUNT10', 'description': 'Giảm 10%', 'discountPercentage': 0.1},
-    {'code': 'DISCOUNT20', 'description': 'Giảm 20%', 'discountPercentage': 0.2},
-    {'code': 'DISCOUNT50', 'description': 'Giảm 50%', 'discountPercentage': 0.5},
+    {
+      'code': 'DISCOUNT10',
+      'description': 'Giảm 10%',
+      'discountPercentage': 0.1
+    },
+    {
+      'code': 'DISCOUNT20',
+      'description': 'Giảm 20%',
+      'discountPercentage': 0.2
+    },
+    {
+      'code': 'DISCOUNT50',
+      'description': 'Giảm 50%',
+      'discountPercentage': 0.5
+    },
   ];
 
   // Danh sách các phương thức thanh toán
@@ -44,7 +56,7 @@ class _PaymentPageState extends State<PaymentPage> {
   void showPromoCodeBottomSheet() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -56,11 +68,11 @@ class _PaymentPageState extends State<PaymentPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Chọn mã khuyến mãi',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               ListView.builder(
                 shrinkWrap: true, // Để danh sách không chiếm hết chiều cao
                 itemCount: promoCodes.length,
@@ -70,7 +82,8 @@ class _PaymentPageState extends State<PaymentPage> {
                     title: Text(promo['description']),
                     subtitle: Text(promo['code']),
                     onTap: () {
-                      applyPromoCode(promo['code'], promo['discountPercentage']);
+                      applyPromoCode(
+                          promo['code'], promo['discountPercentage']);
                       Navigator.pop(context); // Đóng bottom sheet
                     },
                   );
@@ -87,7 +100,7 @@ class _PaymentPageState extends State<PaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thanh toán'),
+        title: const Text('Thanh toán'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -101,21 +114,22 @@ class _PaymentPageState extends State<PaymentPage> {
                 height: 60,
                 width: 60,
               ),
-              title: Text(
+              title: const Text(
                 'Combo Sữa Rửa Mặt SIMPLE Refreshing Facial Wash 100% Soap Free',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              subtitle: Text('Phân loại: Bộ'),
-              trailing: Text(
+              subtitle: const Text('Phân loại: Bộ'),
+              trailing: const Text(
                 '171.600 ₫',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Phần ghi chú (thay cho mã khuyến mãi)
-            Text(
+            const Text(
               'Ghi chú',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -125,20 +139,20 @@ class _PaymentPageState extends State<PaymentPage> {
                   note = value;
                 });
               },
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Nhập ghi chú ở đây',
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Phương thức thanh toán
-            Text(
+            const Text(
               'Phương thức thanh toán',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             DropdownButton<String>(
               value: selectedPaymentMethod,
               onChanged: (String? newValue) {
@@ -146,7 +160,8 @@ class _PaymentPageState extends State<PaymentPage> {
                   selectedPaymentMethod = newValue!;
                 });
               },
-              items: paymentMethods.map<DropdownMenuItem<String>>((String method) {
+              items:
+                  paymentMethods.map<DropdownMenuItem<String>>((String method) {
                 return DropdownMenuItem<String>(
                   value: method,
                   child: Text(method),
@@ -158,37 +173,38 @@ class _PaymentPageState extends State<PaymentPage> {
                 color: Colors.blue,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Chi tiết thanh toán
-            Text(
+            const Text(
               'Chi tiết thanh toán',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             _buildPaymentDetailRow('Tổng tiền sản phẩm', productPrice),
             _buildPaymentDetailRow('Giảm giá', -discount),
-            Divider(),
+            const Divider(),
             _buildPaymentDetailRow('Tổng thanh toán', totalPrice, isBold: true),
-           
-            SizedBox(height: 16),
+
+            const SizedBox(height: 16),
 
             // Mã khuyến mãi (di chuyển xuống dưới)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Mã khuyến mãi'),
+                const Text('Mã khuyến mãi'),
                 TextButton(
-                  onPressed: showPromoCodeBottomSheet, // Mở danh sách mã khuyến mãi
+                  onPressed:
+                      showPromoCodeBottomSheet, // Mở danh sách mã khuyến mãi
                   child: Text(
                     selectedPromoCode.isEmpty ? 'Chọn mã' : selectedPromoCode,
-                    style: TextStyle(color: Colors.blue),
+                    style: const TextStyle(color: Colors.blue),
                   ),
                 ),
               ],
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Nút Đặt hàng
             Center(
@@ -196,13 +212,12 @@ class _PaymentPageState extends State<PaymentPage> {
                 onPressed: () {
                   // Đặt hàng logic
                 },
-                child: Text('Đặt hàng'),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
+                  minimumSize: const Size(double.infinity, 50),
                 ),
+                child: const Text('Đặt hàng'),
               ),
             ),
-           
           ],
         ),
       ),
@@ -210,7 +225,8 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   // Hàm tiện ích để tạo hàng chi tiết thanh toán
-  Widget _buildPaymentDetailRow(String label, double amount, {bool isBold = false}) {
+  Widget _buildPaymentDetailRow(String label, double amount,
+      {bool isBold = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -218,7 +234,8 @@ class _PaymentPageState extends State<PaymentPage> {
         children: [
           Text(
             label,
-            style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
+            style: TextStyle(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
           ),
           Text(
             '${amount.toStringAsFixed(0)} ₫',

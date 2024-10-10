@@ -23,8 +23,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery); // Chọn ảnh từ thư viện
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery); // Chọn ảnh từ thư viện
     // Nếu bạn muốn cho phép chụp ảnh, bạn có thể thêm tùy chọn sau:
     // final XFile? image = await _picker.pickImage(source: ImageSource.camera);
 
@@ -39,7 +40,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thông tin cá nhân'),
+        title: const Text('Thông tin cá nhân'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -48,23 +49,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Center(
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: _image != null ? FileImage(_image!) : null, // Hiển thị ảnh nếu có
-                child: _image == null ? Icon(Icons.person, size: 50) : null, // Hiển thị biểu tượng nếu không có ảnh
+                backgroundImage: _image != null
+                    ? FileImage(_image!)
+                    : null, // Hiển thị ảnh nếu có
+                child: _image == null
+                    ? const Icon(Icons.person, size: 50)
+                    : null, // Hiển thị biểu tượng nếu không có ảnh
               ),
             ),
             TextButton(
               onPressed: _pickImage, // Gọi hàm chọn ảnh
-              child: Text('Cập nhật ảnh', style: TextStyle(color: Colors.blue)),
+              child: const Text('Cập nhật ảnh',
+                  style: TextStyle(color: Colors.blue)),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             buildTextField('Họ và Tên', 'Khach hang'),
             buildDateField(context, 'Ngày sinh', _dateController),
             buildDropdownField('Giới tính', ['Nam', 'Nữ', 'Khác']),
             buildTextField('Số điện thoại', '0774008406', enabled: false),
             buildTextField('Email', 'Nhập email'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             buildChangePasswordButton(context),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 // Logic lưu thay đổi
@@ -75,7 +81,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   _showErrorDialog(context);
                 }
               },
-              child: Text('Lưu thay đổi'),
+              child: const Text('Lưu thay đổi'),
             ),
           ],
         ),
@@ -83,7 +89,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget buildTextField(String label, String placeholder, {bool enabled = true}) {
+  Widget buildTextField(String label, String placeholder,
+      {bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -92,16 +99,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           enabled: enabled,
           decoration: InputDecoration(
             hintText: placeholder,
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            border: const OutlineInputBorder(),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
       ],
     );
   }
 
-  Widget buildDateField(BuildContext context, String label, TextEditingController controller) {
+  Widget buildDateField(
+      BuildContext context, String label, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -109,7 +118,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         TextField(
           controller: controller,
           readOnly: true,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'Chọn ngày sinh',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -130,7 +139,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             }
           },
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -148,12 +157,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             );
           }).toList(),
           onChanged: (String? newValue) {},
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -163,17 +172,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ChangePasswordScreen()),
+          MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
         );
       },
-      child: Text('Đổi mật khẩu'),
+      child: const Text('Đổi mật khẩu'),
     );
   }
 
   bool _isOlderThan12(DateTime date) {
     final today = DateTime.now();
     final age = today.year - date.year;
-    return age > 12 || (age == 12 && today.month > date.month) || (age == 12 && today.month == date.month && today.day >= date.day);
+    return age > 12 ||
+        (age == 12 && today.month > date.month) ||
+        (age == 12 && today.month == date.month && today.day >= date.day);
   }
 
   void _showErrorDialog(BuildContext context) {
@@ -181,11 +192,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Thông báo'),
-          content: Text('Bạn phải lớn hơn 12 tuổi để sử dụng ứng dụng này.'),
+          title: const Text('Thông báo'),
+          content:
+              const Text('Bạn phải lớn hơn 12 tuổi để sử dụng ứng dụng này.'),
           actions: [
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -199,30 +211,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
 // Màn hình "Thay đổi mật khẩu"
 class ChangePasswordScreen extends StatelessWidget {
+  const ChangePasswordScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thay đổi mật khẩu'),
+        title: const Text('Thay đổi mật khẩu'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
-            Text(
+            const Text(
               'Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác. Bạn có thể tạo mật khẩu từ 6 - 16 kí tự.',
               style: TextStyle(fontSize: 14),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             buildPasswordField('Mật khẩu hiện tại', 'Nhập mật khẩu hiện tại'),
             buildPasswordField('Mật khẩu mới', 'Nhập mật khẩu mới'),
             buildPasswordField('Nhập lại mật khẩu', 'Nhập lại mật khẩu mới'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 // Logic lưu mật khẩu mới
               },
-              child: Text('Lưu'),
+              child: const Text('Lưu'),
             ),
           ],
         ),
@@ -239,11 +253,12 @@ class ChangePasswordScreen extends StatelessWidget {
           obscureText: true,
           decoration: InputDecoration(
             hintText: placeholder,
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            border: const OutlineInputBorder(),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
       ],
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class XemChiTietSp extends StatelessWidget {
-  const XemChiTietSp({Key? key}) : super(key: key);
+  const XemChiTietSp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,31 +21,31 @@ class XemChiTietSp extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
-        children: [
+        children: const [
           // Thành phần
-          const Text(
+          Text(
             'Thành phần',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'Công thức cải tiến có chứa hoạt chất AIRLICIUM đã được kiểm nghiệm lâm sàng về hiệu quả hấp thụ bã nhờn, giúp da luôn khô ráo, thoáng mịn, phù hợp cho làn da hỗn hợp và da dầu mụn.\nCông Nghệ Netlock lâu trôi trong nước.',
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Công dụng
-          const Text(
+          Text(
             'Công dụng',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             '• Chứa 8 màng lọc, trong đó có Màng lọc phổ rộng độc quyền MEXORYL 400 giúp bảo vệ da khỏi tia UVA dài (đặc biệt bước sóng 380-400nm) – nguyên nhân chính gây thâm nám.\n'
             '• Ngăn ngừa và giảm thâm nám.\n'
             '• Giảm quá trình tiết bã nhờn.\n'
@@ -53,48 +53,48 @@ class XemChiTietSp extends StatelessWidget {
             '• Không bóng nhờn, không để lại vết trắng trên da.\n'
             '• Da được bảo vệ toàn diện và kiểm dầu suốt 12h.',
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Đối tượng sử dụng
-          const Text(
+          Text(
             'Đối tượng sử dụng',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             '• Phù hợp với da thường, da dầu có mụn viêm, dễ bị nám, tăng sắc tố thích dạng sữa lỏng mỏng nhẹ.\n'
             '• Từ 16 tuổi trở lên.',
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Cách sử dụng
-          const Text(
+          Text(
             'Cách sử dụng',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             '• Thoa toàn mặt vào buổi sáng lấy 3-5 hạt bắp thoa ngang từ trong ra ngoài và từ trên xuống dưới.\n'
             '• Chú ý: đợi kem dưỡng thấm hoàn toàn rồi thoa kem chống nắng lên.',
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Thông tin sản xuất
-          const Text(
+          Text(
             'Thông tin sản xuất',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             '• Bảo quản: bảo quản nhiệt độ thường\n'
             '• Thương hiệu: LA ROCHE POSAY\n'
             '• Sản xuất tại: Pháp\n'

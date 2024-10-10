@@ -16,7 +16,6 @@ class LoginScreen extends StatefulWidget {
 class _MyWidgetState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final AuthController _authController = AuthController();
   bool _isLoading = false; // For loading indicator
 

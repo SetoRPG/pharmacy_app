@@ -8,14 +8,14 @@ class ProductSelectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Product Selection"),
+        title: const Text("Product Selection"),
       ),
       body: Center(
         child: ElevatedButton(
           onPressed: () {
             _showProductBottomSheet(context);
           },
-          child: Text('Chọn sản phẩm'),
+          child: const Text('Chọn sản phẩm'),
         ),
       ),
     );
@@ -24,7 +24,7 @@ class ProductSelectionPage extends StatelessWidget {
   void _showProductBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -44,8 +44,8 @@ class ProductSelectionPage extends StatelessWidget {
                     height: 60,
                     width: 60,
                   ),
-                  SizedBox(width: 10),
-                  Expanded(
+                  const SizedBox(width: 10),
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -76,29 +76,29 @@ class ProductSelectionPage extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close),
+                    icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 "Phân loại sản phẩm",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {},
-                child: Text('Chai'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
+                child: const Text('Chai'),
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 "Số lượng",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -107,16 +107,16 @@ class ProductSelectionPage extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () {},
-                    icon: Icon(Icons.remove),
+                    icon: const Icon(Icons.remove),
                   ),
-                  Text('1'),
+                  const Text('1'),
                   IconButton(
                     onPressed: () {},
-                    icon: Icon(Icons.add),
+                    icon: const Icon(Icons.add),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -124,10 +124,11 @@ class ProductSelectionPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context); // Add to cart logic
                     },
-                    child: Text('Thêm vào giỏ'),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black, backgroundColor: Colors.grey[300],
+                      foregroundColor: Colors.black,
+                      backgroundColor: Colors.grey[300],
                     ),
+                    child: const Text('Thêm vào giỏ'),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -135,14 +136,14 @@ class ProductSelectionPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PaymentPage(),
+                          builder: (context) => const PaymentPage(),
                         ),
                       );
                     },
-                    child: Text('Mua ngay'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                     ),
+                    child: const Text('Mua ngay'),
                   ),
                 ],
               ),

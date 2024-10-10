@@ -41,6 +41,7 @@ class AuthController {
           'password': password, // Consider encrypting the password
           'createdAt': FieldValue.serverTimestamp(),
           'emailVerified': false,
+          'basket': []
         });
 
         // Update display name in Firebase Auth

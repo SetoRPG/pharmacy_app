@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-
 class ChangePasswordScreen extends StatelessWidget {
   const ChangePasswordScreen({super.key});
 
@@ -9,26 +7,26 @@ class ChangePasswordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thay đổi mật khẩu'),
+        title: const Text('Thay đổi mật khẩu'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
-            Text(
+            const Text(
               'Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác. Bạn có thể tạo mật khẩu từ 6 - 16 kí tự',
               style: TextStyle(fontSize: 14),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             buildPasswordField('Mật khẩu hiện tại', 'Nhập mật khẩu hiện tại'),
             buildPasswordField('Mật khẩu mới', 'Nhập mật khẩu mới'),
             buildPasswordField('Nhập lại mật khẩu', 'Nhập lại mật khẩu mới'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 // Lưu thay đổi mật khẩu logic
               },
-              child: Text('Lưu'),
+              child: const Text('Lưu'),
             ),
           ],
         ),
@@ -45,12 +43,13 @@ class ChangePasswordScreen extends StatelessWidget {
           obscureText: true,
           decoration: InputDecoration(
             hintText: placeholder,
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.visibility_off),
-            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            border: const OutlineInputBorder(),
+            suffixIcon: const Icon(Icons.visibility_off),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
       ],
     );
   }

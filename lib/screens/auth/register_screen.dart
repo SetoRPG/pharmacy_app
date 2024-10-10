@@ -146,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           if (isVerified) {
             // Email verified, proceed with login or other actions
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => LoginScreen()));
+                MaterialPageRoute(builder: (context) => const LoginScreen()));
           } else {
             // Handle case where the email is not verified
             print("Email is not verified yet.");
