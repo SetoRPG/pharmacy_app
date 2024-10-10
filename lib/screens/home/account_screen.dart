@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
+import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 import 'package:pharmacy_app/screens/home/search_results.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -112,10 +113,11 @@ class AccountScreen extends StatelessWidget {
           const Divider(),
           _buildAccountOption(
             context,
-            title: 'Thông báo',
-            icon: Icons.notifications,
+            title: 'Giỏ hàng',
+            icon: Icons.shopping_cart,
             onTap: () {
-              // Navigate to notification settings screen
+              Navigator.push(context,
+                  MaterialPageRoute(builder: ((context) => BasketPage())));
             },
           ),
           const Divider(),

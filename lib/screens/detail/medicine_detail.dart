@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
-import 'package:pharmacy_app/screens/detail/mua_ngay.dart';
+import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/home/home_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 

@@ -114,4 +114,75 @@ class OrderController {
       throw e;
     }
   }
+
+  // Function to create an order with multiple items
+  Future<void> createOrderWithMultipleItems({
+    required List<Map<String, dynamic>> items, // List of items to order
+    required String paymentMethod,
+    String? note,
+  }) async {
+    try {
+      // Get the current user
+      User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception("No user is logged in.");
+      }
+
+      // Query Firestore to find the user document with the matching email
+      QuerySnapshot userDocs = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: user.email)
+          .get();
+
+      if (userDocs.docs.isEmpty) {
+        throw Exception("User document not found.");
+      }
+
+      // Assuming there is only one document for the user
+      String userId =
+          userDocs.docs.first['id']; // Get the custom user ID from Firestore
+
+      // Order details
+      String orderId = _generateCustomId();
+      double totalPrice = 0.0; // Initialize total price
+
+      // Prepare the items for the order and calculate total price
+      List<Map<String, dynamic>> orderItems = [];
+      for (var item in items) {
+        String productName = item['productName'];
+        double productPrice = (item['price'] is int)
+            ? (item['price'] as int).toDouble()
+            : item['price'] as double;
+        int quantity = item['quantity'];
+
+        orderItems.add({
+          'productName': productName,
+          'quantity': quantity,
+          'price': productPrice,
+        });
+
+        totalPrice += productPrice * quantity; // Update total price
+      }
+
+      Map<String, dynamic> orderData = {
+        'orderId': orderId,
+        'userId': userId,
+        'userEmail': user.email,
+        'dateCreated': DateTime.now(),
+        'totalPrice': totalPrice,
+        'paymentMethod': paymentMethod,
+        'note': note ?? '',
+        'items': orderItems,
+        'status': 1, // Set initial status
+      };
+
+      // Add order to Firestore
+      await _firestore.collection('orders').doc(orderId).set(orderData);
+
+      print("Order successfully created with ID: $orderId");
+    } catch (e) {
+      print("Failed to create order: $e");
+      throw e;
+    }
+  }
 }

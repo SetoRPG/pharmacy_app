@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
-import 'package:pharmacy_app/screens/detail/chi_tiet_sp.dart';
-import 'package:pharmacy_app/screens/detail/mua_ngay.dart';
+import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
+import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/home/search_results.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -330,8 +332,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Add to cart logic
+                      onPressed: () async {
+                        await _addToCart(
+                            product['medSku'].replaceAll(RegExp(r'\s+'), ''),
+                            quantity);
+                        Navigator.pop(
+                            context); // Close the bottom sheet after adding to cart
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Product added to cart')),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.black,
@@ -367,5 +377,53 @@ class _CategoryScreenState extends State<CategoryScreen> {
         });
       },
     );
+  }
+
+  // Function to add/update product in user's Firestore basket
+  Future<void> _addToCart(String medId, int quantity) async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      print('No user is currently logged in.');
+      return;
+    }
+
+    try {
+      // Query Firestore for the user with the matching email
+      QuerySnapshot userSnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: currentUser.email)
+          .limit(1)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        print('User document does not exist.');
+        return;
+      }
+
+      // Get the first (and only) document returned
+      DocumentSnapshot userDoc = userSnapshot.docs.first;
+      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+      // Retrieve the basket field if it exists, or initialize an empty list
+      List<dynamic> basket = userData['basket'] ?? [];
+
+      // Check if the product is already in the basket
+      int index = basket.indexWhere((item) => item['medId'] == medId);
+      if (index >= 0) {
+        // If the product is already in the basket, update the quantity
+        basket[index]['quantity'] += quantity;
+      } else {
+        // If the product is not in the basket, add it to the basket
+        basket.add({'medId': medId, 'quantity': quantity});
+      }
+
+      // Update the user's basket in Firestore
+      await userDoc.reference.update({'basket': basket});
+      print("Added to cart successfully.");
+    } catch (e) {
+      print("Error adding to cart: $e");
+    }
   }
 }

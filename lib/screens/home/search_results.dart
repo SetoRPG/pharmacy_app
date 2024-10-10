@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
-import 'package:pharmacy_app/screens/detail/chi_tiet_sp.dart';
+import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 
 class SearchResultPage extends StatefulWidget {
   const SearchResultPage({super.key});
