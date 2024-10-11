@@ -45,7 +45,9 @@ class _MyWidgetState extends State<LoginScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const BaseFrame(),
+          builder: (context) => const BaseFrame(
+            passedIndex: 0,
+          ),
         ),
       );
     } else {

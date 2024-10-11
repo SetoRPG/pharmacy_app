@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
+import 'package:pharmacy_app/controllers/order_controller.dart';
+import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
@@ -16,6 +18,7 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   final MedicineController _medicineController = MedicineController();
+  final OrderController _orderController = OrderController();
   List<Map<String, dynamic>> _medicines = [];
   bool _isLoading = true;
 
@@ -36,69 +39,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 8, // Adds shadow to the AppBar
-        shadowColor: Colors.black, // Customize shadow color
-
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF20B6E8),
-                Color(0xFF16B2A5),
-              ],
-            ),
-          ),
-        ),
-
-        title: const Center(
-            child: Row(
-          children: [
-            Icon(
-              Icons.category,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  offset: Offset(
-                      2.0, 2.0), // Position of the shadow (right and down)
-                  blurRadius: 3.0, // Blur radius of the shadow
-                  color: Color.fromARGB(255, 0, 0, 0), // Shadow color (black)
-                ),
-                Shadow(
-                  offset: Offset(
-                      -2.0, -2.0), // Position of a second shadow (left and up)
-                  blurRadius: 3.0,
-                  color: Color.fromARGB(
-                      100, 255, 255, 255), // A lighter shadow for the 3D effect
-                ),
-              ],
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            CustomText(text: 'DANH MỤC SẢN PHẨM', size: 20),
-          ],
-        )),
-
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.search,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SearchResultPage(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(title: 'DANH MỤC', logo: Icons.category),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -169,40 +110,32 @@ class _CategoryScreenState extends State<CategoryScreen> {
         title: Text(product['medName'] ?? 'Unknown Product Name'),
         subtitle:
             Text(product['medPackagingForm'] ?? 'No Indications Provided'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.add_shopping_cart),
-              onPressed: () {
-                _showProductBottomSheet(context, product);
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.list_alt),
-              onPressed: () {
-                String? medId = product['id']; // Use the document ID
+        // Making the entire ListTile clickable by adding onTap
+        onTap: () {
+          String? medId = product['id']; // Use the document ID
 
-                if (medId != null && medId.isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChiTietSp(medicineId: medId),
-                    ),
-                  );
-                } else {
-                  // Handle missing ID case
-                  print('Medicine ID is missing or invalid');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('Unable to view details. Invalid product ID.'),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
+          if (medId != null && medId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChiTietSp(medicineId: medId),
+              ),
+            );
+          } else {
+            // Handle missing ID case
+            print('Medicine ID is missing or invalid');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Unable to view details. Invalid product ID.'),
+              ),
+            );
+          }
+        },
+        trailing: IconButton(
+          icon: const Icon(Icons.add_shopping_cart),
+          onPressed: () {
+            _showProductBottomSheet(context, product);
+          },
         ),
       ),
     );
@@ -333,7 +266,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () async {
-                        await _addToCart(
+                        await _orderController.addToCart(
                             product['medSku'].replaceAll(RegExp(r'\s+'), ''),
                             quantity);
                         Navigator.pop(
@@ -378,53 +311,5 @@ class _CategoryScreenState extends State<CategoryScreen> {
         });
       },
     );
-  }
-
-  // Function to add/update product in user's Firestore basket
-  Future<void> _addToCart(String medId, int quantity) async {
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-    final User? currentUser = FirebaseAuth.instance.currentUser;
-
-    if (currentUser == null) {
-      print('No user is currently logged in.');
-      return;
-    }
-
-    try {
-      // Query Firestore for the user with the matching email
-      QuerySnapshot userSnapshot = await _firestore
-          .collection('users')
-          .where('email', isEqualTo: currentUser.email)
-          .limit(1)
-          .get();
-
-      if (userSnapshot.docs.isEmpty) {
-        print('User document does not exist.');
-        return;
-      }
-
-      // Get the first (and only) document returned
-      DocumentSnapshot userDoc = userSnapshot.docs.first;
-      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-
-      // Retrieve the basket field if it exists, or initialize an empty list
-      List<dynamic> basket = userData['basket'] ?? [];
-
-      // Check if the product is already in the basket
-      int index = basket.indexWhere((item) => item['medId'] == medId);
-      if (index >= 0) {
-        // If the product is already in the basket, update the quantity
-        basket[index]['quantity'] += quantity;
-      } else {
-        // If the product is not in the basket, add it to the basket
-        basket.add({'medId': medId, 'quantity': quantity});
-      }
-
-      // Update the user's basket in Firestore
-      await userDoc.reference.update({'basket': basket});
-      print("Added to cart successfully.");
-    } catch (e) {
-      print("Error adding to cart: $e");
-    }
   }
 }

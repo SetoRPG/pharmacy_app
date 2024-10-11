@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
+import 'package:pharmacy_app/controllers/order_controller.dart';
+import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
+import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/home/home_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -15,6 +18,7 @@ class ChiTietSp extends StatefulWidget {
 
 class _ChiTietSpState extends State<ChiTietSp> {
   final MedicineController _medicineController = MedicineController();
+  final OrderController _orderController = OrderController();
   Map<String, dynamic>? medicineDetails;
   final PageController _pageController = PageController();
 
@@ -54,169 +58,184 @@ class _ChiTietSpState extends State<ChiTietSp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_shopping_cart, color: Colors.black),
-            onPressed: () {
-              _showProductBottomSheet(context, medicineDetails!);
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
+      appBar: CustomAppBar(
+        title: 'XEM THUỐC',
+        logo: Icons.info,
       ),
       body: medicineDetails == null
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        height: 300,
-                        child: Stack(
-                          children: [
-                            PageView(
-                              controller: _pageController,
+          : Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            height: 300,
+                            child: Stack(
                               children: [
-                                Image.network(
-                                  _getImageUrl(
-                                      medicineDetails!['medPrimaryImage']),
-                                  fit: BoxFit.cover,
+                                PageView(
+                                  controller: _pageController,
+                                  children: [
+                                    Image.network(
+                                      _getImageUrl(
+                                          medicineDetails!['medPrimaryImage']),
+                                      fit: BoxFit.cover,
+                                    ),
+                                    if (medicineDetails![
+                                            'medAdditionalImage1'] !=
+                                        null)
+                                      Image.network(
+                                        _getImageUrl(medicineDetails![
+                                            'medAdditionalImage1']),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    if (medicineDetails![
+                                            'medAdditionalImage2'] !=
+                                        null)
+                                      Image.network(
+                                        _getImageUrl(medicineDetails![
+                                            'medAdditionalImage2']),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    if (medicineDetails![
+                                            'medAdditionalImage3'] !=
+                                        null)
+                                      Image.network(
+                                        _getImageUrl(medicineDetails![
+                                            'medAdditionalImage3']),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    if (medicineDetails![
+                                            'medAdditionalImage4'] !=
+                                        null)
+                                      Image.network(
+                                        _getImageUrl(medicineDetails![
+                                            'medAdditionalImage4']),
+                                        fit: BoxFit.cover,
+                                      ),
+                                  ],
                                 ),
-                                if (medicineDetails!['medAdditionalImage1'] !=
-                                    null)
-                                  Image.network(
-                                    _getImageUrl(medicineDetails![
-                                        'medAdditionalImage1']),
-                                    fit: BoxFit.cover,
+                                Positioned(
+                                  bottom: 10,
+                                  left: 0,
+                                  right: 0,
+                                  child: Center(
+                                    child: SmoothPageIndicator(
+                                      controller: _pageController,
+                                      count: _getImageCount(),
+                                      effect: const ExpandingDotsEffect(
+                                        dotColor: Colors.grey,
+                                        activeDotColor: Colors.blueAccent,
+                                        dotHeight: 8,
+                                        dotWidth: 8,
+                                        expansionFactor: 2,
+                                      ),
+                                    ),
                                   ),
-                                if (medicineDetails!['medAdditionalImage2'] !=
-                                    null)
-                                  Image.network(
-                                    _getImageUrl(medicineDetails![
-                                        'medAdditionalImage2']),
-                                    fit: BoxFit.cover,
-                                  ),
-                                if (medicineDetails!['medAdditionalImage3'] !=
-                                    null)
-                                  Image.network(
-                                    _getImageUrl(medicineDetails![
-                                        'medAdditionalImage3']),
-                                    fit: BoxFit.cover,
-                                  ),
-                                if (medicineDetails!['medAdditionalImage4'] !=
-                                    null)
-                                  Image.network(
-                                    _getImageUrl(medicineDetails![
-                                        'medAdditionalImage4']),
-                                    fit: BoxFit.cover,
-                                  ),
+                                ),
                               ],
                             ),
-                            Positioned(
-                              bottom: 10,
-                              left: 0,
-                              right: 0,
-                              child: Center(
-                                child: SmoothPageIndicator(
-                                  controller: _pageController,
-                                  count: _getImageCount(),
-                                  effect: const ExpandingDotsEffect(
-                                    dotColor: Colors.grey,
-                                    activeDotColor: Colors.blueAccent,
-                                    dotHeight: 8,
-                                    dotWidth: 8,
-                                    expansionFactor: 2,
-                                  ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            medicineDetails!['medName'] ?? 'Unknown Medicine',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Thương hiệu: ${medicineDetails!['medManufacturer'] ?? 'Unknown'}',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.blueAccent),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                '${medicineDetails!['medPrice'] ?? '0'} đ',
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        medicineDetails!['medName'] ?? 'Unknown Medicine',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                        Divider(thickness: 1, color: Colors.grey[300]),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Trường hợp chỉ định',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                medicineDetails!['medIndications'] ??
+                                    'No description available',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              const SizedBox(height: 16),
+                              Center(
+                                child: TextButton(
+                                  onPressed: () {
+                                    _showDetailsDialog();
+                                  },
+                                  child: const Text('Xem thêm'),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Thương hiệu: ${medicineDetails!['medManufacturer'] ?? 'Unknown'}',
-                            style: const TextStyle(
-                                fontSize: 16, color: Colors.blueAccent),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${medicineDetails!['medPrice'] ?? '0'} đ',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(thickness: 1, color: Colors.grey[300]),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Trường hợp chỉ định',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            medicineDetails!['medIndications'] ??
-                                'No description available',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 16),
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                _showDetailsDialog();
-                              },
-                              child: const Text('Xem thêm'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _showProductBottomSheet(context, medicineDetails!);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: Colors.blueAccent,
+                      ),
+                      child: const Text(
+                        'MUA THUỐC',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
     );
   }
@@ -405,8 +424,13 @@ class _ChiTietSpState extends State<ChiTietSp> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Add to cart logic
+                      onPressed: () async {
+                        await _orderController.addToCart(
+                            widget.medicineId, quantity);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Product added to cart')),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.black,

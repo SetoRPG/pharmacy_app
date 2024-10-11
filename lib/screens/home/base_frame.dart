@@ -6,7 +6,9 @@ import 'package:pharmacy_app/screens/home/home_screen.dart';
 import 'package:pharmacy_app/screens/home/orders_sreeen.dart';
 
 class BaseFrame extends StatefulWidget {
-  const BaseFrame({super.key});
+  final int passedIndex;
+
+  const BaseFrame({super.key, required this.passedIndex});
 
   @override
   State<BaseFrame> createState() => _BaseFrameState();
@@ -14,6 +16,12 @@ class BaseFrame extends StatefulWidget {
 
 class _BaseFrameState extends State<BaseFrame> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.passedIndex;
+  }
 
   final List<Widget> _screens = [
     const HomeScreen(),

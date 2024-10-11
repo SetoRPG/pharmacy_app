@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
+import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
+import 'package:pharmacy_app/screens/home/base_frame.dart';
 
 class BasketPage extends StatefulWidget {
   @override
@@ -175,55 +177,59 @@ class _BasketPageState extends State<BasketPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('GIỎ HÀNG CỦA BẠN'),
+      appBar: CustomAppBar(
+        title: 'GIỎ HÀNG',
+        logo: Icons.shopping_cart,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _basketItems.isEmpty
               ? Center(child: Text('Bạn chưa thêm gì vào giỏ hàng!'))
-              : ListView.builder(
-                  itemCount: _basketItems.length,
-                  itemBuilder: (context, index) {
-                    var item = _basketItems[index];
-                    var medicine = item['medicine'];
-                    int quantity = item['quantity'];
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListView.builder(
+                    itemCount: _basketItems.length,
+                    itemBuilder: (context, index) {
+                      var item = _basketItems[index];
+                      var medicine = item['medicine'];
+                      int quantity = item['quantity'];
 
-                    // Safely getting the medSku and removing spaces
-                    String medId = (medicine['medSku']
-                            ?.toString()
-                            .replaceAll(RegExp(r'\s+'), '') ??
-                        '');
+                      // Safely getting the medSku and removing spaces
+                      String medId = (medicine['medSku']
+                              ?.toString()
+                              .replaceAll(RegExp(r'\s+'), '') ??
+                          '');
 
-                    return Card(
-                      child: ListTile(
-                        title: Text(medicine['medName']),
-                        subtitle: Text('Giá: ${medicine['medPrice']} VND'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.remove),
-                              onPressed: () {
-                                if (quantity >= 1) {
-                                  _updateQuantity(medId, quantity - 1);
-                                }
-                              },
-                            ),
-                            // Display the quantity here
-                            Text(quantity.toString(),
-                                style: TextStyle(fontSize: 16)),
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                _updateQuantity(medId, quantity + 1);
-                              },
-                            ),
-                          ],
+                      return Card(
+                        child: ListTile(
+                          title: Text(medicine['medName']),
+                          subtitle: Text('Giá: ${medicine['medPrice']} VND'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove),
+                                onPressed: () {
+                                  if (quantity >= 1) {
+                                    _updateQuantity(medId, quantity - 1);
+                                  }
+                                },
+                              ),
+                              // Display the quantity here
+                              Text(quantity.toString(),
+                                  style: TextStyle(fontSize: 16)),
+                              IconButton(
+                                icon: Icon(Icons.add),
+                                onPressed: () {
+                                  _updateQuantity(medId, quantity + 1);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
       bottomNavigationBar: BottomAppBar(
         child: Padding(
@@ -235,6 +241,16 @@ class _BasketPageState extends State<BasketPage> {
               ElevatedButton(
                 onPressed: () {
                   _confirmPurchase();
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => BaseFrame(
+                                passedIndex: 2,
+                              )));
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Đặt hàng thành công!')),
+                  );
                 },
                 child: Text('XÁC NHẬN MUA'),
               ),

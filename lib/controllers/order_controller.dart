@@ -185,4 +185,52 @@ class OrderController {
       throw e;
     }
   }
+
+  // Function to add/update product in user's Firestore basket
+  Future<void> addToCart(String medId, int quantity) async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      print('No user is currently logged in.');
+      return;
+    }
+
+    try {
+      // Query Firestore for the user with the matching email
+      QuerySnapshot userSnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: currentUser.email)
+          .limit(1)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        print('User document does not exist.');
+        return;
+      }
+
+      // Get the first (and only) document returned
+      DocumentSnapshot userDoc = userSnapshot.docs.first;
+      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+      // Retrieve the basket field if it exists, or initialize an empty list
+      List<dynamic> basket = userData['basket'] ?? [];
+
+      // Check if the product is already in the basket
+      int index = basket.indexWhere((item) => item['medId'] == medId);
+      if (index >= 0) {
+        // If the product is already in the basket, update the quantity
+        basket[index]['quantity'] += quantity;
+      } else {
+        // If the product is not in the basket, add it to the basket
+        basket.add({'medId': medId, 'quantity': quantity});
+      }
+
+      // Update the user's basket in Firestore
+      await userDoc.reference.update({'basket': basket});
+      print("Added to cart successfully.");
+    } catch (e) {
+      print("Error adding to cart: $e");
+    }
+  }
 }

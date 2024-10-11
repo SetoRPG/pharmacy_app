@@ -14,7 +14,7 @@ class PaymentPage extends StatefulWidget {
     super.key,
     required this.productName,
     required this.productPrice,
-    required this.buyingQuantity, 
+    required this.buyingQuantity,
     required this.img,
   });
 
@@ -154,7 +154,7 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
             ),
             const SizedBox(height: 16),
-           Row(
+            Row(
               children: [
                 const Text(
                   'Ghi chú :',
@@ -163,7 +163,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(width: 16), 
+                const SizedBox(width: 16),
                 Expanded(
                   child: TextField(
                     onChanged: (value) {
@@ -174,7 +174,8 @@ class _PaymentPageState extends State<PaymentPage> {
                     decoration: const InputDecoration(
                       hintText: 'Nhập ghi chú ở đây',
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12), 
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     ),
                     maxLines: 1,
                     style: const TextStyle(
@@ -261,7 +262,12 @@ class _PaymentPageState extends State<PaymentPage> {
                       note: note,
                     );
 
-                    // Show success message
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => BaseFrame(
+                                  passedIndex: 2,
+                                )));
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Đặt hàng thành công!')),
