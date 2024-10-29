@@ -90,23 +90,32 @@ class OrderController {
           .where('userEmail', isEqualTo: user.email)
           .get();
 
-      // Convert the query results to a List of Map
+      // Convert the query results to a List of Map with all required fields
       return orderDocs.docs.map((doc) {
-        // Assuming 'status' is stored as a number, convert it to a string
+        // Define status text based on status code
         String statusText = doc['status'] == 1
             ? 'Đang xử lý'
-            : 'Hoàn thành'; // Adjust based on your status codes
+            : 'Hoàn thành'; // Adjust if there are more status codes
 
-        // Calculate total price if needed; else you can directly use doc['totalPrice']
-        double totalPrice = doc['totalPrice'] ?? 0.0; // Default to 0.0 if null
+        // Extract items array and ensure each item is a map with required fields
+        List<Map<String, dynamic>> items = (doc['items'] as List<dynamic>)
+            .map((item) => {
+                  'productName': item['productName'] ?? '',
+                  'price': item['price'] ?? 0,
+                  'quantity': item['quantity'] ?? 0,
+                })
+            .toList();
 
         return {
-          'orderId': doc['orderId'],
+          'note': doc['note'] ?? '',
+          'orderId': doc['orderId'] ?? '',
           'status': statusText,
-          'total': totalPrice.toStringAsFixed(2) +
-              'đ', // Format price to 2 decimal places with currency
-          'items': doc['items'] as List<
-              dynamic>, // This will give you access to the items array if needed
+          'total': doc['totalPrice'].toStringAsFixed(2) + 'đ',
+          'paymentMethod': doc['paymentMethod'] ?? '',
+          'userEmail': doc['userEmail'] ?? '',
+          'userId': doc['userId'] ?? '',
+          'dateCreated': (doc['dateCreated'] as Timestamp).toDate(),
+          'items': items, // List of items with detailed product info
         };
       }).toList();
     } catch (e) {

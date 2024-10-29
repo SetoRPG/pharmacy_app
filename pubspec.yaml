@@ -42,6 +42,7 @@ dependencies:
   image_picker: ^0.8.4+4
   smooth_page_indicator: ^1.2.0+3
   google_fonts: ^5.0.0
+  lottie:
 
 dev_dependencies:
   flutter_test:

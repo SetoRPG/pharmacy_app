@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
+import 'package:pharmacy_app/screens/detail/chi_tiet_hoa_%C4%91%C6%A1n.dart';
 import 'package:pharmacy_app/screens/home/search_results.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -59,7 +60,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     trailing: Text(
                         '${order['total']}'), // Already includes currency symbol
                     onTap: () {
-                      // Handle tap to show more details
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OrderDetailScreen(order: order),
+                        ),
+                      );
                     },
                   ),
                 );

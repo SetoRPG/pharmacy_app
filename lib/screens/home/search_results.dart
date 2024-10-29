@@ -47,8 +47,30 @@ class _SearchResultPageState extends State<SearchResultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 8, // Adds shadow to the AppBar
+        shadowColor: Colors.black, // Customize shadow color
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF20B6E8),
+                Color(0xFF16B2A5),
+              ],
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: TextField(
+          style: TextStyle(color: Colors.white),
           controller: _searchController,
+          cursorColor: Colors.white,
           autofocus: true,
           decoration: const InputDecoration(
             hintText: 'Tìm kiếm thuốc...',
@@ -60,66 +82,69 @@ class _SearchResultPageState extends State<SearchResultPage> {
           ? const Center(child: CircularProgressIndicator())
           : _filteredMedicines.isEmpty
               ? const Center(child: Text('Không tìm thấy kết quả.'))
-              : ListView.builder(
-                  itemCount: _filteredMedicines.length,
-                  itemBuilder: (context, index) {
-                    final medicine = _filteredMedicines[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ChiTietSp(medicineId: medicine['id']),
+              : Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: ListView.builder(
+                    itemCount: _filteredMedicines.length,
+                    itemBuilder: (context, index) {
+                      final medicine = _filteredMedicines[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChiTietSp(medicineId: medicine['id']),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            // Medicine Image
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                image: DecorationImage(
-                                  image: NetworkImage(_getImageUrl(
-                                      medicine['medPrimaryImage'])),
-                                  fit: BoxFit.cover,
+                          child: Row(
+                            children: [
+                              // Medicine Image
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: NetworkImage(_getImageUrl(
+                                        medicine['medPrimaryImage'])),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            // Medicine Name
-                            Expanded(
-                              child: Text(
-                                medicine['medName'],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 16),
+                              // Medicine Name
+                              Expanded(
+                                child: Text(
+                                  medicine['medName'],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
     );
   }
