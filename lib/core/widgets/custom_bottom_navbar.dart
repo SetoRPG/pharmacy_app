@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/core/widgets/unpressed_button.dart';
 import 'package:pharmacy_app/core/widgets/pressed_button.dart';

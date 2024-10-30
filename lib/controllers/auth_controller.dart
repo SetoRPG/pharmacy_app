@@ -1,7 +1,11 @@
+// ignore_for_file: use_build_context_synchronously, empty_catches
+
 import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:pharmacy_app/screens/auth/login_screen.dart';
 
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -50,11 +54,9 @@ class AuthController {
         user = _auth.currentUser;
 
         // You can notify the user to check their email for verification
-        print("Verification email sent to ${user?.email}");
       }
       return user;
-    } on FirebaseAuthException catch (e) {
-      print("Error during registration: ${e.message}");
+    } on FirebaseAuthException {
       return null;
     }
   }
@@ -88,12 +90,22 @@ class AuthController {
         return user;
       } else {
         // Email not verified or user is null
-        print("Email not verified. Please check your email.");
         return null;
       }
-    } on FirebaseAuthException catch (e) {
-      print("Error during login: ${e.message}");
+    } on FirebaseAuthException {
       return null;
     }
+  }
+
+  //Logout
+  Future<void> signOut(BuildContext context) async {
+    try {
+      await _auth.signOut();
+      // Navigate to the LoginScreen and remove all previous routes
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    } catch (e) {}
   }
 }

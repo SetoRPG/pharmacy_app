@@ -1,3 +1,5 @@
+// ignore_for_file: empty_catches
+
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -68,11 +70,8 @@ class OrderController {
 
       // Add order to Firestore
       await _firestore.collection('orders').doc(orderId).set(orderData);
-
-      print("Order successfully created with ID: $orderId");
     } catch (e) {
-      print("Failed to create order: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -119,8 +118,7 @@ class OrderController {
         };
       }).toList();
     } catch (e) {
-      print("Failed to get orders: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -187,34 +185,29 @@ class OrderController {
 
       // Add order to Firestore
       await _firestore.collection('orders').doc(orderId).set(orderData);
-
-      print("Order successfully created with ID: $orderId");
     } catch (e) {
-      print("Failed to create order: $e");
-      throw e;
+      rethrow;
     }
   }
 
   // Function to add/update product in user's Firestore basket
   Future<void> addToCart(String medId, int quantity) async {
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
     final User? currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser == null) {
-      print('No user is currently logged in.');
       return;
     }
 
     try {
       // Query Firestore for the user with the matching email
-      QuerySnapshot userSnapshot = await _firestore
+      QuerySnapshot userSnapshot = await firestore
           .collection('users')
           .where('email', isEqualTo: currentUser.email)
           .limit(1)
           .get();
 
       if (userSnapshot.docs.isEmpty) {
-        print('User document does not exist.');
         return;
       }
 
@@ -237,9 +230,22 @@ class OrderController {
 
       // Update the user's basket in Firestore
       await userDoc.reference.update({'basket': basket});
-      print("Added to cart successfully.");
+    } catch (e) {}
+  }
+
+// Delete order by ID
+  Future<void> deleteOrder(String orderId) async {
+    try {
+      // Check if the current user is authenticated
+      User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception("No user is logged in.");
+      }
+
+      // Delete the order document from Firestore
+      await _firestore.collection('orders').doc(orderId).delete();
     } catch (e) {
-      print("Error adding to cart: $e");
+      rethrow;
     }
   }
 }

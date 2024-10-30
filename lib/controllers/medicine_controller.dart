@@ -13,7 +13,6 @@ class MedicineController {
         return data;
       }).toList();
     } catch (e) {
-      print("Error fetching medicines: $e");
       return [];
     }
   }
@@ -26,11 +25,9 @@ class MedicineController {
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>?;
       } else {
-        print("No medicine found for the given ID");
         return null;
       }
     } catch (e) {
-      print("Error fetching medicine by ID: $e");
       return null;
     }
   }

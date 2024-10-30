@@ -68,7 +68,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
           },
         ),
         title: TextField(
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
           controller: _searchController,
           cursorColor: Colors.white,
           autofocus: true,

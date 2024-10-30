@@ -6,12 +6,14 @@ import 'package:pharmacy_app/screens/home/search_results.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final IconData logo; // Allows you to change the logo
+  final bool showBackButton; // New parameter to control back button visibility
 
-  CustomAppBar({
-    Key? key,
+  const CustomAppBar({
+    super.key,
     required this.title,
     required this.logo,
-  }) : super(key: key);
+    this.showBackButton = true, // Default to true
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -33,25 +35,29 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-      ),
+      automaticallyImplyLeading:
+          showBackButton, // Controls automatic back button
+      leading: showBackButton
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            )
+          : null, // Set leading to null if showBackButton is false
       title: Center(
         child: Row(
           children: [
             Icon(
               logo, // Use the dynamic logo here
               color: Colors.white,
-              shadows: [
-                const Shadow(
+              shadows: const [
+                Shadow(
                   offset: Offset(2.0, 2.0),
                   blurRadius: 3.0,
                   color: Color.fromARGB(255, 0, 0, 0), // Shadow color
                 ),
-                const Shadow(
+                Shadow(
                   offset: Offset(-2.0, -2.0),
                   blurRadius: 3.0,
                   color: Color.fromARGB(100, 255, 255, 255), // Lighter shadow
@@ -81,7 +87,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => BasketPage(),
+                builder: (context) => const BasketPage(),
               ),
             );
           },

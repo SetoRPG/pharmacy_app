@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
@@ -206,7 +208,8 @@ class _MyWidgetState extends State<LoginScreen> {
           shadowColor: Colors.transparent, // Disable default button shadow
         ),
         child: _isLoading
-            ? const CircularProgressIndicator() // Show loading indicator
+            ? const CircularProgressIndicator(
+                color: Color(0xFF16B2A5)) // Show loading indicator
             : const Text(
                 'Đăng nhập',
                 style: TextStyle(

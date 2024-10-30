@@ -1,10 +1,11 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
-import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
-import 'package:pharmacy_app/screens/home/home_screen.dart';
+import 'package:pharmacy_app/screens/home/base_frame.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class ChiTietSp extends StatefulWidget {
@@ -58,7 +59,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: 'XEM THUỐC',
         logo: Icons.info,
       ),
@@ -130,7 +131,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                                       count: _getImageCount(),
                                       effect: const ExpandingDotsEffect(
                                         dotColor: Colors.grey,
-                                        activeDotColor: Colors.blueAccent,
+                                        activeDotColor: Color(0xFF20B6E8),
                                         dotHeight: 8,
                                         dotWidth: 8,
                                         expansionFactor: 2,
@@ -158,9 +159,9 @@ class _ChiTietSpState extends State<ChiTietSp> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Thương hiệu: ${medicineDetails!['medManufacturer'] ?? 'Unknown'}',
+                                'Sản phẩm của ${medicineDetails!['medManufacturer'] ?? 'Unknown'}',
                                 style: const TextStyle(
-                                    fontSize: 16, color: Colors.blueAccent),
+                                    fontSize: 13, color: Color(0xFF16B2A5)),
                               ),
                             ],
                           ),
@@ -171,7 +172,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                           child: Row(
                             children: [
                               Text(
-                                '${medicineDetails!['medPrice'] ?? '0'} đ',
+                                '${medicineDetails!['medPrice'] ?? '0'} ₫',
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -204,7 +205,22 @@ class _ChiTietSpState extends State<ChiTietSp> {
                                   onPressed: () {
                                     _showDetailsDialog();
                                   },
-                                  child: const Text('Xem thêm'),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.list,
+                                          color: Color(0xFF757575)),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Text(
+                                        'Xem thêm',
+                                        style: TextStyle(
+                                          color: Color(0xFF757575),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -225,8 +241,9 @@ class _ChiTietSpState extends State<ChiTietSp> {
                         _showProductBottomSheet(context, medicineDetails!);
                       },
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        foregroundColor: Colors.blueAccent,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        backgroundColor: const Color(0xFF20B6E8), //
+                        foregroundColor: Colors.white,
                       ),
                       child: const Text(
                         'MUA THUỐC',
@@ -299,7 +316,8 @@ class _ChiTietSpState extends State<ChiTietSp> {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Đóng'),
+                      child: const Text('Đóng',
+                          style: TextStyle(color: Colors.red)),
                     ),
                   ),
                 ],
@@ -325,146 +343,158 @@ class _ChiTietSpState extends State<ChiTietSp> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Image.network(
-                      _getImageUrl(product['medPrimaryImage']),
-                      height: 60,
-                      width: 60,
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product['medName'] ?? 'Unknown Product',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            product['medIndications'] ?? 'No Indications',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          Text(
-                            "${product['medPrice']} ₫",
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+          builder: (BuildContext context, StateSetter setState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Image.network(
+                        _getImageUrl(product['medPrimaryImage']),
+                        height: 60,
+                        width: 60,
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Phân loại sản phẩm",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    // Add logic for selecting product variant
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product['medName'] ?? 'Unknown Product',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              product['medIndications'] ?? 'No Indications',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              "${product['medPrice']} ₫",
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
-                  child: Text(product['medCategory'] ?? 'Unknown Product'),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Số lượng",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        if (quantity > 1) {
-                          setState(() {
-                            quantity--;
-                            print(quantity);
-                          });
-                        }
-                      },
-                      icon: const Icon(Icons.remove),
-                    ),
-                    Text('$quantity'), // Display current quantity
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          quantity++;
-                        });
-                      },
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        await _orderController.addToCart(
-                            widget.medicineId, quantity);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Product added to cart')),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.black,
-                        backgroundColor: Colors.grey[300],
-                      ),
-                      child: const Text('Thêm vào giỏ hàng'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Phân loại sản phẩm",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PaymentPage(
-                              productName: product['medName'],
-                              productPrice:
-                                  (product['medPrice'] as num).toDouble(),
-                              buyingQuantity: quantity,
-                              img: (_getImageUrl(product['medPrimaryImage'])),
-                            ),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF002D82),
-                        foregroundColor: Colors.white,
+                              builder: (context) => BaseFrame(
+                                    passedIndex: 1,
+                                    selectedCategory: product['medCategory'],
+                                  )));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF16B2A5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text('Mua ngay'),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        });
+                    child: Text(
+                      product['medCategory'] ?? 'Unknown Product',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Số lượng",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          if (quantity > 1) {
+                            setState(() {
+                              quantity--;
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.remove),
+                      ),
+                      Text('$quantity'), // Display current quantity
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            quantity++;
+                          });
+                        },
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          await _orderController.addToCart(
+                              product['medSku'].replaceAll(RegExp(r'\s+'), ''),
+                              quantity);
+                          Navigator.pop(
+                              context); // Close the bottom sheet after adding to cart
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Product added to cart')),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.black,
+                          backgroundColor: Colors.grey[300],
+                        ),
+                        child: const Text('Thêm vào giỏ hàng'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PaymentPage(
+                                productName: product['medName'],
+                                productPrice:
+                                    (product['medPrice'] as num).toDouble(),
+                                buyingQuantity: quantity,
+                                img: (_getImageUrl(product['medPrimaryImage'])),
+                              ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF20B6E8),
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Mua ngay'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }

@@ -43,15 +43,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Image.asset('assets/logo.jpg', height: 170),
-              ),
-              _buildRegisterForm(),
-            ],
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Image.asset('assets/logo.jpg', height: 170),
+                ),
+                _buildRegisterForm(),
+              ],
+            ),
           ),
         ),
       ),
@@ -138,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(
-                  'A verification email has been sent to $email. Please verify your email.')),
+                  'Email xác nhận đã được gửi đến $email. Vui lòng xác nhận email của bạn.')),
         );
 
         // Optionally, check if the email is verified after some time
@@ -149,12 +152,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 MaterialPageRoute(builder: (context) => const LoginScreen()));
           } else {
             // Handle case where the email is not verified
-            print("Email is not verified yet.");
           }
         });
       }
-    }).catchError((error) {
-      print("Error during registration: $error");
-    });
+    }).catchError((error) {});
   }
 }

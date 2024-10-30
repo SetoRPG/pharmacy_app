@@ -1,8 +1,9 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
+import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
-import 'package:pharmacy_app/screens/home/home_screen.dart';
-import 'package:pharmacy_app/screens/home/orders_sreeen.dart';
 
 class PaymentPage extends StatefulWidget {
   final String productName;
@@ -124,9 +125,7 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thanh toán'),
-      ),
+      appBar: const CustomAppBar(title: 'THANH TOÁN', logo: Icons.attach_money),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -265,7 +264,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => BaseFrame(
+                            builder: (context) => const BaseFrame(
                                   passedIndex: 2,
                                 )));
 
@@ -280,9 +279,12 @@ class _PaymentPageState extends State<PaymentPage> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  backgroundColor: const Color(0xFF20B6E8), //
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text('Đặt hàng'),
+                child: const Text('ĐẶT HÀNG'),
               ),
             ),
           ],

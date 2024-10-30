@@ -1,13 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
-import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
-import 'package:pharmacy_app/screens/home/search_results.dart';
+import 'package:pharmacy_app/screens/home/base_frame.dart';
 
 class CategoryScreen extends StatefulWidget {
   final String initialCategory;
@@ -58,7 +57,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'DANH MỤC', logo: Icons.category),
+      appBar: const CustomAppBar(
+        title: 'DANH MỤC',
+        logo: Icons.category,
+        showBackButton: false,
+      ),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(
@@ -72,19 +75,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Chọn danh mục:',
                         style: TextStyle(fontSize: 15),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
                             border: Border.all(),
                             borderRadius: BorderRadius.circular(10)),
                         child: DropdownButton<String>(
                           borderRadius: BorderRadius.circular(10),
-                          icon: Icon(Icons.keyboard_arrow_down),
+                          icon: const Icon(Icons.keyboard_arrow_down),
                           underline: Container(),
                           value: _selectedCategory,
                           items: _categories
@@ -178,7 +181,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ),
         title: Text(product['medName'] ?? 'Unknown Product Name'),
         subtitle: Text(
-          product['medPrice'].toString() + ' ₫' ?? 'No Price Provided',
+          '${product['medPrice']} ₫',
           style: const TextStyle(
               fontSize: 18, color: Colors.red, fontWeight: FontWeight.bold),
         ),
@@ -192,7 +195,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
             );
           } else {
-            print('Medicine ID is missing or invalid');
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Unable to view details. Invalid product ID.'),
@@ -287,15 +289,24 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      // Add logic for selecting product variant
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => BaseFrame(
+                                    passedIndex: 1,
+                                    selectedCategory: product['medCategory'],
+                                  )));
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: const Color(0xFF16B2A5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: Text(product['medCategory'] ?? 'Unknown Product'),
+                    child: Text(
+                      product['medCategory'] ?? 'Unknown Product',
+                      style: const TextStyle(color: Colors.white),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   const Text(
@@ -310,7 +321,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           if (quantity > 1) {
                             setState(() {
                               quantity--;
-                              print(quantity);
                             });
                           }
                         },
@@ -365,7 +375,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF002D82),
+                          backgroundColor: const Color(0xFF20B6E8),
                           foregroundColor: Colors.white,
                         ),
                         child: const Text('Mua ngay'),

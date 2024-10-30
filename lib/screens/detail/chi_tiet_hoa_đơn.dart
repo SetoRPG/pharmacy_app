@@ -1,9 +1,10 @@
+// ignore_for_file: file_names
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 
 class OrderDetailScreen extends StatelessWidget {
   final Map<String, dynamic> order;
@@ -19,39 +20,9 @@ class OrderDetailScreen extends StatelessWidget {
         : order['dateCreated'] as DateTime;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back,
-                  color: const Color.fromARGB(255, 14, 14, 14)),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            Expanded(
-              child: Text(
-                'Chi tiết đơn hàng',
-                style: GoogleFonts.roboto(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(width: 48),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(2.0),
-          child: Container(
-            color: const Color.fromARGB(255, 214, 212, 212).withOpacity(0.3),
-            height: 6.0,
-            width: double.infinity,
-          ),
-        ),
+      appBar: const CustomAppBar(
+        title: 'XEM HÓA ĐƠN',
+        logo: Icons.info,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -66,9 +37,9 @@ class OrderDetailScreen extends StatelessWidget {
                   fontSize: 18,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text('KH: ${order['userEmail']}'),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                   'Địa chỉ: ${order['address']}'), // If address is part of the order data
               Divider(color: Colors.grey.withOpacity(0.2)),
@@ -79,7 +50,7 @@ class OrderDetailScreen extends StatelessWidget {
                   fontSize: 18,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               ...items.map((item) => buildProductItem(
                     item['productName'],
                     'https://link_to_product_image', // Replace with item-specific image URL if available
@@ -98,7 +69,7 @@ class OrderDetailScreen extends StatelessWidget {
               buildPaymentDetailRow('Phí vận chuyển', '0 đ'),
               buildPaymentDetailRow('Tổng thanh toán', '${order['total']} đ',
                   isBold: true, isRed: true),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'Mã đơn hàng: ${order['orderId']}',
                 style: GoogleFonts.lato(fontSize: 16),
@@ -107,7 +78,7 @@ class OrderDetailScreen extends StatelessWidget {
                 'Thời gian đặt hàng: ${dateCreated.toString()}',
                 style: GoogleFonts.lato(fontSize: 16),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -123,7 +94,7 @@ class OrderDetailScreen extends StatelessWidget {
         width: 50,
         height: 50,
         errorBuilder: (context, error, stackTrace) {
-          return Icon(Icons.image_not_supported);
+          return const Icon(Icons.image_not_supported);
         },
       ),
       title: Text(name,

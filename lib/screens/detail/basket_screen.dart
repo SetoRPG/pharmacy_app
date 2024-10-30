@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, avoid_types_as_parameter_names
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,13 +9,16 @@ import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
 
 class BasketPage extends StatefulWidget {
+  const BasketPage({super.key});
+
   @override
   _BasketPageState createState() => _BasketPageState();
 }
 
 class _BasketPageState extends State<BasketPage> {
   final MedicineController _medicineController = MedicineController();
-  List<Map<String, dynamic>> _basketItems = [];
+  final List<Map<String, dynamic>> _basketItems = [];
+  final List<String> _selectedItems = [];
   bool _isLoading = true;
   double _totalPrice = 0.0;
 
@@ -48,11 +53,7 @@ class _BasketPageState extends State<BasketPage> {
           }
 
           _calculateTotalPrice();
-        } else {
-          print('User document not found.');
-        }
-      } catch (e) {
-        print("Error loading basket items: $e");
+        } else {}
       } finally {
         setState(() {
           _isLoading = false;
@@ -158,10 +159,10 @@ class _BasketPageState extends State<BasketPage> {
       });
     }
 
-    OrderController _orderController = new OrderController();
+    OrderController orderController = OrderController();
 
     try {
-      await _orderController.createOrderWithMultipleItems(
+      await orderController.createOrderWithMultipleItems(
         items: orderItems,
         paymentMethod: 'YourPaymentMethod', // Set your payment method
         note: 'Optional note here', // Optional note
@@ -170,23 +171,24 @@ class _BasketPageState extends State<BasketPage> {
       // Optionally navigate to another page or show success message
     } catch (e) {
       // Handle any errors
-      print("Error confirming purchase: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: 'GIỎ HÀNG',
         logo: Icons.shopping_cart,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF16B2A5)))
           : _basketItems.isEmpty
-              ? Center(child: Text('Bạn chưa thêm gì vào giỏ hàng!'))
+              ? const Center(child: Text('Bạn chưa thêm gì vào giỏ hàng!'))
               : Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 20),
                   child: ListView.builder(
                     itemCount: _basketItems.length,
                     itemBuilder: (context, index) {
@@ -194,32 +196,48 @@ class _BasketPageState extends State<BasketPage> {
                       var medicine = item['medicine'];
                       int quantity = item['quantity'];
 
-                      // Safely getting the medSku and removing spaces
                       String medId = (medicine['medSku']
                               ?.toString()
                               .replaceAll(RegExp(r'\s+'), '') ??
                           '');
 
                       return Card(
+                        color: Colors.white,
+                        surfaceTintColor: Colors.white,
+                        shadowColor: Colors.black,
+                        elevation: 4,
                         child: ListTile(
+                          leading: Checkbox(
+                            activeColor: const Color(0xFF16B2A5),
+                            checkColor: Colors.white,
+                            value: _selectedItems.contains(medId),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  _selectedItems.add(medId);
+                                } else {
+                                  _selectedItems.remove(medId);
+                                }
+                              });
+                            },
+                          ),
                           title: Text(medicine['medName']),
                           subtitle: Text('Giá: ${medicine['medPrice']} VND'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: Icon(Icons.remove),
+                                icon: const Icon(Icons.remove),
                                 onPressed: () {
-                                  if (quantity >= 1) {
+                                  if (quantity > 1) {
                                     _updateQuantity(medId, quantity - 1);
                                   }
                                 },
                               ),
-                              // Display the quantity here
                               Text(quantity.toString(),
-                                  style: TextStyle(fontSize: 16)),
+                                  style: const TextStyle(fontSize: 16)),
                               IconButton(
-                                icon: Icon(Icons.add),
+                                icon: const Icon(Icons.add),
                                 onPressed: () {
                                   _updateQuantity(medId, quantity + 1);
                                 },
@@ -233,27 +251,101 @@ class _BasketPageState extends State<BasketPage> {
                 ),
       bottomNavigationBar: BottomAppBar(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Tổng giá: $_totalPrice VND'),
-              ElevatedButton(
-                onPressed: () {
-                  _confirmPurchase();
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => BaseFrame(
-                                passedIndex: 2,
-                              )));
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Đặt hàng thành công!')),
-                  );
-                },
-                child: Text('XÁC NHẬN MUA'),
-              ),
+              _selectedItems.isNotEmpty
+                  ? ElevatedButton(
+                      style:
+                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed: () async {
+                        bool confirmDelete = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Xác nhận xóa'),
+                              content: const Text(
+                                  'Bạn có chắc chắn muốn xóa các mục đã chọn không?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: const Text('Hủy'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: const Text('Xóa'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        if (confirmDelete) {
+                          setState(() {
+                            for (var medId in _selectedItems) {
+                              _removeFromBasket(medId);
+                            }
+                            _selectedItems.clear();
+                          });
+                        }
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Xóa sản phẩm',
+                              style: TextStyle(color: Colors.white)),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Icon(Icons.delete, color: Colors.white)
+                        ],
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Tổng giá:',
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              '$_totalPrice ₫',
+                              style: const TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15),
+                            )
+                          ],
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: const Color(0xFF20B6E8),
+                          ),
+                          onPressed: () {
+                            _confirmPurchase();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const BaseFrame(
+                                          passedIndex: 2,
+                                        )));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Đặt hàng thành công!')),
+                            );
+                          },
+                          child: const Text('XÁC NHẬN MUA'),
+                        ),
+                      ],
+                    ),
             ],
           ),
         ),

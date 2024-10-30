@@ -1,18 +1,13 @@
-// ignore_for_file: unused_element
+// ignore_for_file: unused_element, use_build_context_synchronously
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
-import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
-import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
-import 'package:pharmacy_app/screens/home/search_results.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'dart:async'; // For Timer
 
@@ -25,10 +20,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MedicineController _medicineController = MedicineController();
-  OrderController _orderController = OrderController();
+  final OrderController _orderController = OrderController();
   List<Map<String, dynamic>> _medicines = [];
-  ScrollController _scrollController = ScrollController();
-  PageController _pageController = PageController();
+  final ScrollController _scrollController = ScrollController();
+  final PageController _pageController = PageController();
   bool _isLoading = true;
   Timer? _timer;
   Timer? _scrollTimer;
@@ -65,15 +60,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void startTimer() {
     _timer = Timer.periodic(
-      Duration(seconds: 3),
+      const Duration(seconds: 3),
       (timer) {
         if (_pageController.hasClients) {
           if (_pageController.page == imagePaths.length - 1) {
             _pageController.animateToPage(0,
-                duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut);
           } else {
             _pageController.nextPage(
-                duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut);
           }
         }
       },
@@ -82,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void startAutoScroll() {
     _scrollTimer?.cancel();
-    _scrollTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+    _scrollTimer = Timer.periodic(const Duration(milliseconds: 30), (timer) {
       if (_scrollController.hasClients && !_isUserInteracting) {
         // Scroll by a small amount each time
         _scrollController.jumpTo(_scrollController.offset + 1);
@@ -111,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isUserInteracting = false;
     });
-    Future.delayed(Duration(seconds: 3),
+    Future.delayed(const Duration(seconds: 3),
         startAutoScroll); // Restart auto-scrolling after a delay
   }
 
@@ -126,12 +123,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: 'TRANG CHỦ',
         logo: Icons.home,
+        showBackButton: false,
       ),
       body: _isLoading
-          ? Center(
+          ? const Center(
               child: CircularProgressIndicator(
               color: Color(0xFF16B2A5),
             ))
@@ -169,8 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 10.0),
+        const Padding(
+          padding: EdgeInsets.only(top: 10.0),
           child: Text(
             '⚡ THUỐC BÁN CHẠY ⚡',
             style: TextStyle(
@@ -183,23 +181,24 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 10),
         SizedBox(
           height: 370,
-          child: GestureDetector(
+          child: /*GestureDetector(
             onPanDown: (_) => _onUserInteractionStart(),
             onPanCancel: _onUserInteractionEnd,
             onPanEnd: (_) => _onUserInteractionEnd(),
-            child: ListView.builder(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              itemCount: _medicines.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 200,
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
-                  child: _medicineCard(_medicines[index]),
-                );
-              },
-            ),
+            child:*/
+              ListView.builder(
+            //controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            itemCount: _medicines.length,
+            itemBuilder: (context, index) {
+              return Container(
+                width: 200,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                child: _medicineCard(_medicines[index]),
+              );
+            },
           ),
+          /*),*/
         ),
       ],
     );
@@ -249,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
-                    return Center(
+                    return const Center(
                         child: CircularProgressIndicator(
                             color: Color(0xFF16B2A5)));
                   },
@@ -287,17 +286,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: const TextStyle(fontSize: 14, color: Colors.black87),
               ),
               const SizedBox(height: 6),
-              Spacer(),
+              const Spacer(),
               Center(
                 child: ElevatedButton(
                   onPressed: () {
                     _showProductBottomSheet(context, medicine);
-                  },
-                  child: const Text('MUA NGAY',
-                      style: TextStyle(fontSize: 14)), // Nút nhãn
+                  }, // Nút nhãn
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white, // Màu chữ
-                    backgroundColor: Color(0xFF20B6E8), // Màu nền nút
+                    backgroundColor: const Color(0xFF20B6E8), // Màu nền nút
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 4), // Tạo kích thước nút hợp lý
@@ -306,6 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
+                  child: const Text('MUA NGAY', style: TextStyle(fontSize: 14)),
                 ),
               )
             ],
@@ -334,9 +332,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: const Text(
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Text(
             'DANH MỤC',
             style: TextStyle(
                 fontSize: 24,
@@ -362,9 +360,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 10, right: 10),
-          child: const Text(
+        const Padding(
+          padding: EdgeInsets.only(left: 10, right: 10),
+          child: Text(
             '🔥 KHUYẾN MÃI 🔥',
             style: TextStyle(
               fontSize: 24,
@@ -376,9 +374,9 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 10),
         Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-              child: const Text(
+            const Padding(
+              padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+              child: Text(
                 '✨ GIẢM NGAY 20% ✨\nToàn bộ mặt hàng Vitamin trong tuần này!',
                 style: TextStyle(
                   fontSize: 18,
@@ -409,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SmoothPageIndicator(
               controller: _pageController,
               count: 5,
-              effect: ExpandingDotsEffect(
+              effect: const ExpandingDotsEffect(
                 dotHeight: 5,
                 dotWidth: 5,
                 activeDotColor: Color(0xFF20B6E8),
@@ -439,8 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 10),
+        const Padding(
+          padding: EdgeInsets.only(top: 10),
           child: Text(
             'Về chúng tôi',
             style: TextStyle(
@@ -449,11 +447,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Color(0xFF16B2A5)),
           ),
         ),
-        Container(
+        SizedBox(
           height: 100,
           child: Lottie.asset('assets/healing_hand.json'),
         ),
-        Text(
+        const Text(
           'Cung cấp đa dạng các loại thuốc, thực phẩm bổ sung, '
           'và sản phẩm về sức khỏe với nhiều ưu đãi và giao tận nhà',
           style: TextStyle(fontSize: 16, color: Colors.black54),
@@ -492,7 +490,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Color(0xFF20B6E8), size: 40),
+            Icon(icon, color: const Color(0xFF20B6E8), size: 40),
             const SizedBox(height: 8),
             Text(
               title,
@@ -584,14 +582,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   )));
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF16B2A5),
+                      backgroundColor: const Color(0xFF16B2A5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     child: Text(
                       product['medCategory'] ?? 'Unknown Product',
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -607,7 +605,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (quantity > 1) {
                             setState(() {
                               quantity--;
-                              print(quantity);
                             });
                           }
                         },
