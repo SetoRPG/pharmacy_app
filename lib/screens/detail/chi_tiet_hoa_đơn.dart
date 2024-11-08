@@ -15,9 +15,9 @@ class OrderDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> items =
         List<Map<String, dynamic>>.from(order['items']);
-    DateTime dateCreated = order['dateCreated'] is Timestamp
-        ? (order['dateCreated'] as Timestamp).toDate()
-        : order['dateCreated'] as DateTime;
+    DateTime dateCreated = order['orderDate'] is Timestamp
+        ? (order['orderDate'] as Timestamp).toDate()
+        : order['orderDate'] as DateTime;
 
     return Scaffold(
       appBar: const CustomAppBar(
@@ -41,7 +41,7 @@ class OrderDetailScreen extends StatelessWidget {
               Text('KH: ${order['userEmail']}'),
               const SizedBox(height: 8),
               Text(
-                  'Địa chỉ: ${order['address']}'), // If address is part of the order data
+                  'Địa chỉ: ${order['location']}'), // If address is part of the order data
               Divider(color: Colors.grey.withOpacity(0.2)),
               Text(
                 'Sản phẩm đã mua',

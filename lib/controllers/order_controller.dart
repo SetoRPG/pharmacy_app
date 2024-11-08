@@ -8,6 +8,27 @@ class OrderController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  String _getImageUrl(String gsUrl) {
+    const storageBaseUrl =
+        "https://storage.googleapis.com/pharmadirect-a8570.appspot.com/";
+    if (gsUrl.startsWith("gs://pharmadirect-a8570.appspot.com/")) {
+      return gsUrl.replaceFirst(
+          "gs://pharmadirect-a8570.appspot.com/", storageBaseUrl);
+    }
+    return gsUrl;
+  }
+
+  Future<String> getMedicinePicture(String id) async {
+    QuerySnapshot medDocs = await _firestore
+        .collection('medicines')
+        .where('medSku', isEqualTo: id)
+        .get();
+
+    String medImg = medDocs.docs.first['medPrimaryImage'];
+
+    return _getImageUrl(medImg);
+  }
+
   // Custom ID generator
   String _generateCustomId() {
     final now = DateTime.now();
@@ -18,63 +39,6 @@ class OrderController {
     return "ORD$datePart$randomPart";
   }
 
-  // Function to create an order
-  Future<void> createOrder({
-    required String productName,
-    required double productPrice,
-    required int quantity,
-    required double totalPrice,
-    required String paymentMethod,
-    String? note,
-  }) async {
-    try {
-      // Get the current user
-      User? user = _auth.currentUser;
-      if (user == null) {
-        throw Exception("No user is logged in.");
-      }
-
-      // Query Firestore to find the user document with the matching email
-      QuerySnapshot userDocs = await _firestore
-          .collection('users')
-          .where('email', isEqualTo: user.email)
-          .get();
-
-      if (userDocs.docs.isEmpty) {
-        throw Exception("User document not found.");
-      }
-
-      // Assuming there is only one document for the user
-      String userId =
-          userDocs.docs.first['id']; // Get the custom user ID from Firestore
-
-      // Order details
-      String orderId = _generateCustomId();
-      Map<String, dynamic> orderData = {
-        'orderId': orderId,
-        'userId': userId, // Use the custom user ID
-        'userEmail': user.email,
-        'dateCreated': DateTime.now(),
-        'totalPrice': totalPrice,
-        'paymentMethod': paymentMethod,
-        'note': note ?? '',
-        'items': [
-          {
-            'productName': productName,
-            'quantity': quantity,
-            'price': productPrice,
-          },
-        ],
-        'status': 1,
-      };
-
-      // Add order to Firestore
-      await _firestore.collection('orders').doc(orderId).set(orderData);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   // Function to get all orders for the current user based on email
   Future<List<Map<String, dynamic>>> getOrdersForCurrentUser() async {
     try {
@@ -83,37 +47,71 @@ class OrderController {
         throw Exception("No user is logged in.");
       }
 
-      // Fetch orders where userEmail matches the current user's email
-      QuerySnapshot orderDocs = await _firestore
-          .collection('orders')
-          .where('userEmail', isEqualTo: user.email)
+      // Step 1: Fetch the current user's data from the 'users' collection to get the userId
+      QuerySnapshot userDocs = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: user.email)
           .get();
 
-      // Convert the query results to a List of Map with all required fields
+      if (userDocs.docs.isEmpty) {
+        throw Exception("User not found in 'users' collection.");
+      }
+
+      // Get the userId from the first document (assuming userEmail is unique)
+      String userId = userDocs.docs.first['id'];
+
+      // Step 2: Fetch orders from 'orders' collection where customer field matches the userId
+      QuerySnapshot orderDocs = await _firestore
+          .collection('orders')
+          .where('customer', isEqualTo: userId)
+          .get();
+
+      // Step 3: Convert the query results to a List of Map with all required fields
       return orderDocs.docs.map((doc) {
         // Define status text based on status code
-        String statusText = doc['status'] == 1
-            ? 'Đang xử lý'
-            : 'Hoàn thành'; // Adjust if there are more status codes
+        String statusText = '';
+        switch (doc['orderStatus']) {
+          case 'PENDING':
+            statusText = 'Đang Chờ Xử Lý'; // Pending
+            break;
+          case 'CONFIRMED':
+            statusText = 'Đã Xác Nhận'; // Confirmed
+            break;
+          case 'SHIPPED':
+            statusText = 'Đã Giao Hàng'; // Shipped
+            break;
+          case 'CANCELLED':
+            statusText = 'Đã Hủy'; // Cancelled
+            break;
+          case 'COMPLETED':
+            statusText = 'Đã Kết Toán'; // Completed
+            break;
+          default:
+            statusText = 'Trạng Thái Không Xác Định'; // Undefined status
+            break;
+        }
 
         // Extract items array and ensure each item is a map with required fields
-        List<Map<String, dynamic>> items = (doc['items'] as List<dynamic>)
-            .map((item) => {
-                  'productName': item['productName'] ?? '',
-                  'price': item['price'] ?? 0,
-                  'quantity': item['quantity'] ?? 0,
-                })
-            .toList();
-
+        List<Map<String, dynamic>> items =
+            (doc['orderItemList'] as List<dynamic>)
+                .map((item) => {
+                      'productName': item['productName'] ?? '',
+                      'price': item['price'] ?? 0,
+                      'quantity': item['quantity'] ?? 0,
+                    })
+                .toList();
+        // Return the order data in the updated structure
         return {
-          'note': doc['note'] ?? '',
+          'location': doc['deliveryLocation'] ?? '',
+          'note':
+              doc['orderNote'] ?? '', // Assuming 'orderNote' is the new field
           'orderId': doc['orderId'] ?? '',
           'status': statusText,
-          'total': doc['totalPrice'].toStringAsFixed(2) + 'đ',
-          'paymentMethod': doc['paymentMethod'] ?? '',
-          'userEmail': doc['userEmail'] ?? '',
-          'userId': doc['userId'] ?? '',
-          'dateCreated': (doc['dateCreated'] as Timestamp).toDate(),
+          'total': doc['totalAmount'].toStringAsFixed(2) +
+              'đ', // Assuming 'totalAmount' is the new field
+          'paymentStatus': doc['paymentStatus'] ?? '',
+          'customer': doc['customer'] ?? '',
+          'orderDate': (doc['orderDate'] as Timestamp).toDate(),
           'items': items, // List of items with detailed product info
         };
       }).toList();
@@ -123,11 +121,10 @@ class OrderController {
   }
 
   // Function to create an order with multiple items
-  Future<void> createOrderWithMultipleItems({
-    required List<Map<String, dynamic>> items, // List of items to order
-    required String paymentMethod,
-    String? note,
-  }) async {
+  Future<void> createOrderWithMultipleItems(
+      {required List<Map<String, dynamic>> items, // List of items to order
+      String? note,
+      String? location}) async {
     try {
       // Get the current user
       User? user = _auth.currentUser;
@@ -156,10 +153,10 @@ class OrderController {
       // Prepare the items for the order and calculate total price
       List<Map<String, dynamic>> orderItems = [];
       for (var item in items) {
-        String productName = item['productName'];
-        double productPrice = (item['price'] is int)
-            ? (item['price'] as int).toDouble()
-            : item['price'] as double;
+        String productName = item['medName'];
+        double productPrice = (item['medPrice'] is int)
+            ? (item['medPrice'] as int).toDouble()
+            : item['medPrice'] as double;
         int quantity = item['quantity'];
 
         orderItems.add({
@@ -173,14 +170,15 @@ class OrderController {
 
       Map<String, dynamic> orderData = {
         'orderId': orderId,
-        'userId': userId,
-        'userEmail': user.email,
-        'dateCreated': DateTime.now(),
-        'totalPrice': totalPrice,
-        'paymentMethod': paymentMethod,
-        'note': note ?? '',
-        'items': orderItems,
-        'status': 1, // Set initial status
+        'customer': userId,
+        'deliveryLocation': location,
+        'orderDate': DateTime.now(),
+        'orderItemList': orderItems,
+        'totalAmount': totalPrice,
+        'orderNote': note ?? '',
+        'orderStatus': 'PENDING', // Set initial order status
+        'paymentStatus': 'UNPAID', // Set initial payment status
+        'processBy': [], // Example processing steps
       };
 
       // Add order to Firestore

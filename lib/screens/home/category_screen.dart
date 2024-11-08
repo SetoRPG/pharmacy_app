@@ -197,7 +197,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Unable to view details. Invalid product ID.'),
+                content: Text('Đã xảy ra lỗi'),
               ),
             );
           }
@@ -350,7 +350,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               context); // Close the bottom sheet after adding to cart
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Product added to cart')),
+                                content: Text('Thêm sản phẩm thành công')),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -365,11 +365,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PaymentPage(
-                                productName: product['medName'],
-                                productPrice:
-                                    (product['medPrice'] as num).toDouble(),
-                                buyingQuantity: quantity,
-                                img: (_getImageUrl(product['medPrimaryImage'])),
+                                items: [
+                                  {
+                                    'medId': product['medSku'],
+                                    'medName': product['medName'],
+                                    'medPrice': product['medPrice'],
+                                    'quantity': quantity,
+                                  }
+                                ],
+                                totalPrice: product['medPrice'] * quantity,
                               ),
                             ),
                           );

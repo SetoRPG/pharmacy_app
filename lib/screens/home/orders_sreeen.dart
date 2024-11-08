@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/screens/detail/chi_tiet_hoa_%C4%91%C6%A1n.dart';
+// Import the intl package
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -12,14 +13,27 @@ class OrdersScreen extends StatefulWidget {
   _OrdersScreenState createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> {
+class _OrdersScreenState extends State<OrdersScreen>
+    with SingleTickerProviderStateMixin {
   final OrderController _orderController = OrderController();
   List<Map<String, dynamic>> _orders = [];
+  List<Map<String, dynamic>> _filteredOrders = [];
   bool _isLoading = true;
+  late TabController _tabController;
+
+  // Define the order statuses
+  final List<String> _statusTabs = [
+    'Đang Chờ Xử Lý', // PENDING
+    'Đã Xác Nhận', // CONFIRMED
+    'Đã Giao Hàng', // SHIPPED
+    'Đã Kết Toán', // COMPLETED
+    'Đã Hủy', // CANCELLED
+  ];
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _statusTabs.length, vsync: this);
     _loadOrders();
   }
 
@@ -28,8 +42,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
       final orders = await _orderController.getOrdersForCurrentUser();
       setState(() {
         _orders = orders;
+        _filteredOrders = orders
+            .where((order) => order['status'] == _statusTabs[0])
+            .toList(); // Initially show only 'Đang Chờ Xử Lý' orders
         _isLoading = false;
       });
+      // Debug print
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -38,6 +56,100 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  // Filter orders based on the selected status
+  void _filterOrdersByStatus(String status) {
+    setState(() {
+      _filteredOrders =
+          _orders.where((order) => order['status'] == status).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const CustomAppBar(
+        title: 'ĐƠN ĐÃ ĐẶT',
+        logo: Icons.receipt,
+        showBackButton: false,
+      ),
+      body: Column(
+        children: [
+          // TabBar at the top with no extra padding
+          Material(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              labelColor: const Color(0xFF16B2A5),
+              indicatorColor:
+                  const Color(0xFF16B2A5), // Optional: indicator color
+              tabs: _statusTabs.map((status) => Tab(text: status)).toList(),
+              onTap: (index) {
+                _filterOrdersByStatus(_statusTabs[index]);
+              },
+            ),
+          ),
+          // Body of the screen
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: _filteredOrders.length,
+                    itemBuilder: (context, index) {
+                      final order = _filteredOrders[index];
+                      final isProcessing = order['orderStatus'] == 'Đang xử lý';
+
+                      return Card(
+                        color: Colors.white,
+                        surfaceTintColor: Colors.white,
+                        shadowColor: Colors.black,
+                        elevation: 4,
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ListTile(
+                              title: Text('Mã đơn hàng: ${order['orderId']}'),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Ngày tạo: ${order['orderDate']}'),
+                                  Text('Tổng tiền: ${order['total']}đ'),
+                                  Text('Trạng thái: ${order['status']}'),
+                                ],
+                              ),
+                              trailing: isProcessing
+                                  ? IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () =>
+                                          _confirmDeleteOrder(order['orderId']),
+                                    )
+                                  : null,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        OrderDetailScreen(order: order),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildStatusBar(order['status']),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Method to confirm deletion
   Future<void> _confirmDeleteOrder(String orderId) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
@@ -63,94 +175,36 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'ĐƠN ĐÃ ĐẶT',
-        logo: Icons.receipt,
-        showBackButton: false,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: _orders.length,
-              itemBuilder: (context, index) {
-                final order = _orders[index];
-                final isProcessing = order['status'] == 'Đang xử lý';
-                return Card(
-                  color: Colors.white,
-                  surfaceTintColor: Colors.white,
-                  shadowColor: Colors.black,
-                  elevation: 4,
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ListTile(
-                        title: Text('Mã đơn hàng: ${order['orderId']}'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Ngày tạo: ${order['dateCreated']}'),
-                            Text('Tổng tiền: ${order['total']}'),
-                            Text('Trạng thái: ${order['status']}'),
-                          ],
-                        ),
-                        trailing: isProcessing
-                            ? IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () =>
-                                    _confirmDeleteOrder(order['orderId']),
-                              )
-                            : null,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  OrderDetailScreen(order: order),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildStatusBar(order['status']),
-                    ],
-                  ),
-                );
-              },
-            ),
-    );
-  }
-
+  // Method to build the status bar for each order
   Widget _buildStatusBar(String status) {
+    // Define the status stages
+    List<String> progressStages = [
+      'Đang Chờ Xử Lý', // PENDING
+      'Đã Xác Nhận', // CONFIRMED
+      'Đã Giao Hàng', // SHIPPED
+      'Đã Hủy', // CANCELLED
+      'Đã Kết Toán', // COMPLETED
+    ];
+
+    // Define the color to apply (green for completed stages, grey for uncompleted ones)
+    Color getStatusColor(String stage, String currentStatus) {
+      return progressStages.indexOf(stage) <=
+              progressStages.indexOf(currentStatus)
+          ? const Color(0xFF20B6E8) // Green for completed stages
+          : Colors.grey.shade300; // Grey for uncompleted stages
+    }
+
     return SizedBox(
       height: 20,
       child: Row(
-        children: [
-          Expanded(
+        children: progressStages.map((stage) {
+          return Expanded(
             child: Container(
-              color: status == 'Đang xử lý' ? Colors.green : Colors.grey,
+              color: getStatusColor(stage, status),
               alignment: Alignment.center,
-              child: Text(
-                status == 'Đang xử lý' ? 'Đang xử lý' : '',
-                style: const TextStyle(color: Colors.white, fontSize: 10),
-              ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              color: status == 'Đã giao' ? Colors.green : Colors.grey,
-              alignment: Alignment.center,
-              child: Text(
-                status == 'Đã giao' ? 'Đã giao' : '',
-                style: const TextStyle(color: Colors.white, fontSize: 10),
-              ),
-            ),
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }

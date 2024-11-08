@@ -6,17 +6,13 @@ import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
 
 class PaymentPage extends StatefulWidget {
-  final String productName;
-  final double productPrice;
-  final int buyingQuantity;
-  final String img;
+  final List<Map<String, dynamic>> items;
+  final double totalPrice;
 
   const PaymentPage({
     super.key,
-    required this.productName,
-    required this.productPrice,
-    required this.buyingQuantity,
-    required this.img,
+    required this.items,
+    required this.totalPrice,
   });
 
   @override
@@ -26,27 +22,27 @@ class PaymentPage extends StatefulWidget {
 class _PaymentPageState extends State<PaymentPage> {
   final OrderController _orderController =
       OrderController(); // Initialize OrderController
+  final Map<String, String?> _imageCache = {};
   double discount = 0; // Giảm giá mặc định là 0
   double totalPrice = 0; // Tổng giá ban đầu
   String selectedPromoCode = ''; // Mã khuyến mãi đã chọn
   String note = ''; // Ghi chú của người dùng
+  String location = '';
   String selectedPaymentMethod = 'COD'; // Phương thức thanh toán đã chọn
 
   @override
   void initState() {
     super.initState();
-    totalPrice =
-        widget.productPrice * widget.buyingQuantity; // Tổng tiền ban đầu
+    totalPrice = widget.totalPrice;
   }
 
   // Hàm áp dụng mã khuyến mãi
   void applyPromoCode(String code, double discountPercentage) {
     setState(() {
       selectedPromoCode = code;
-      discount = discountPercentage *
-          (widget.productPrice * widget.buyingQuantity); // Tính giảm giá
-      totalPrice = (widget.productPrice * widget.buyingQuantity) -
-          discount; // Cập nhật tổng tiền sau giảm giá
+      discount = discountPercentage * widget.totalPrice; // Tính giảm giá
+      totalPrice =
+          widget.totalPrice - discount; // Cập nhật tổng tiền sau giảm giá
     });
   }
 
@@ -125,30 +121,99 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: const CustomAppBar(title: 'THANH TOÁN', logo: Icons.attach_money),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thông tin sản phẩm
-            ListTile(
-              leading: Image.network(
-                widget.img, // Example image
-                height: 60,
-                width: 60,
-              ),
-              title: Text(
-                widget.productName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text('Số lượng: ${widget.buyingQuantity}'),
-              trailing: Text(
-                '${(widget.productPrice).toStringAsFixed(0)} ₫',
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                const Text(
+                  'Địa chỉ : ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        location = value;
+                      });
+                    },
+                    cursorColor: const Color.fromARGB(255, 53, 255, 245),
+                    decoration: const InputDecoration(
+                      hintText: 'Nhập địa chỉ giao hàng ở đây',
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(255, 53, 255, 245),
+                        ),
+                      ),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    ),
+                    maxLines: 1,
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Expanded(
+              child: Expanded(
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: ListView.builder(
+                    itemCount: widget.items.length,
+                    itemBuilder: (context, index) {
+                      var item = widget.items[index];
+                      String? imageUrl = _imageCache[item['medId']];
+
+                      return ListTile(
+                        leading: imageUrl != null
+                            ? Image.network(imageUrl, fit: BoxFit.cover)
+                            : FutureBuilder<String>(
+                                future: _orderController
+                                    .getMedicinePicture(item['medId']),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const CircularProgressIndicator();
+                                  } else if (snapshot.hasError) {
+                                    return const Icon(Icons.error);
+                                  } else {
+                                    _imageCache[item['medId']] =
+                                        snapshot.data; // Cache the result
+                                    return Image.network(snapshot.data!,
+                                        fit: BoxFit.cover);
+                                  }
+                                },
+                              ),
+                        title: Text(
+                          item['medName'] ?? '',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text('Số lượng: ${item['quantity']}'),
+                        trailing: Text(
+                          '${(item['medPrice']).toStringAsFixed(0)} ₫',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -170,7 +235,13 @@ class _PaymentPageState extends State<PaymentPage> {
                         note = value;
                       });
                     },
+                    cursorColor: const Color.fromARGB(255, 53, 255, 245),
                     decoration: const InputDecoration(
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(255, 53, 255, 245),
+                        ),
+                      ),
                       hintText: 'Nhập ghi chú ở đây',
                       border: OutlineInputBorder(),
                       contentPadding:
@@ -220,8 +291,7 @@ class _PaymentPageState extends State<PaymentPage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
-            _buildPaymentDetailRow('Tổng tiền sản phẩm',
-                widget.productPrice * widget.buyingQuantity),
+            _buildPaymentDetailRow('Tổng tiền sản phẩm', widget.totalPrice),
             _buildPaymentDetailRow('Giảm giá', -discount),
             const Divider(),
             _buildPaymentDetailRow('Tổng thanh toán', totalPrice, isBold: true),
@@ -252,13 +322,10 @@ class _PaymentPageState extends State<PaymentPage> {
                 onPressed: () async {
                   try {
                     // Call the createOrder function from the controller
-                    await _orderController.createOrder(
-                      productName: widget.productName,
-                      productPrice: widget.productPrice,
-                      quantity: widget.buyingQuantity,
-                      totalPrice: totalPrice,
-                      paymentMethod: selectedPaymentMethod,
-                      note: note,
+                    await _orderController.createOrderWithMultipleItems(
+                      items: widget.items,
+                      note: note, // Optional note
+                      location: location,
                     );
 
                     Navigator.push(

@@ -649,11 +649,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PaymentPage(
-                                productName: product['medName'],
-                                productPrice:
-                                    (product['medPrice'] as num).toDouble(),
-                                buyingQuantity: quantity,
-                                img: (_getImageUrl(product['medPrimaryImage'])),
+                                items: [
+                                  {
+                                    'medId': product['medSku'],
+                                    'medName': product['medName'],
+                                    'medPrice': product['medPrice'],
+                                    'quantity': quantity,
+                                  }
+                                ],
+                                totalPrice: product['medPrice'] * quantity,
                               ),
                             ),
                           );

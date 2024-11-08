@@ -458,7 +458,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                               context); // Close the bottom sheet after adding to cart
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Product added to cart')),
+                                content: Text('Thêm sản phẩm thành công')),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -473,11 +473,15 @@ class _ChiTietSpState extends State<ChiTietSp> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PaymentPage(
-                                productName: product['medName'],
-                                productPrice:
-                                    (product['medPrice'] as num).toDouble(),
-                                buyingQuantity: quantity,
-                                img: (_getImageUrl(product['medPrimaryImage'])),
+                                items: [
+                                  {
+                                    'medId': product['medSku'],
+                                    'medName': product['medName'],
+                                    'medPrice': product['medPrice'],
+                                    'quantity': quantity,
+                                  }
+                                ],
+                                totalPrice: product['medPrice'] * quantity,
                               ),
                             ),
                           );

@@ -4,9 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
-import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
-import 'package:pharmacy_app/screens/home/base_frame.dart';
+import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 
 class BasketPage extends StatefulWidget {
   const BasketPage({super.key});
@@ -143,35 +142,27 @@ class _BasketPageState extends State<BasketPage> {
 
   // Call this when the user presses "XÁC NHẬN MUA"
   void _confirmPurchase() async {
-    List<Map<String, dynamic>> orderItems = [];
+    List<Map<String, dynamic>> orderItems = _basketItems.map((item) {
+      if (item['medicine']['medPrice'] != null) {}
 
-    for (var item in _basketItems) {
-      String productName = item['medicine']['medName'];
-      double productPrice = (item['medicine']['medPrice'] is int)
-          ? (item['medicine']['medPrice'] as int).toDouble()
-          : item['medicine']['medPrice'] as double;
-      int quantity = item['quantity'];
+      return {
+        'medId': item['medicine']['medSku'],
+        'medName': item['medicine']['medName'],
+        'medPrice': item['medicine']['medPrice'],
+        'quantity': item['quantity'],
+      };
+    }).toList();
 
-      orderItems.add({
-        'productName': productName,
-        'price': productPrice,
-        'quantity': quantity,
-      });
-    }
-
-    OrderController orderController = OrderController();
-
-    try {
-      await orderController.createOrderWithMultipleItems(
-        items: orderItems,
-        paymentMethod: 'YourPaymentMethod', // Set your payment method
-        note: 'Optional note here', // Optional note
-      );
-
-      // Optionally navigate to another page or show success message
-    } catch (e) {
-      // Handle any errors
-    }
+    // Navigate to PaymentPage with basket items
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentPage(
+          items: orderItems,
+          totalPrice: _totalPrice,
+        ),
+      ),
+    );
   }
 
   @override
@@ -331,16 +322,6 @@ class _BasketPageState extends State<BasketPage> {
                           ),
                           onPressed: () {
                             _confirmPurchase();
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const BaseFrame(
-                                          passedIndex: 2,
-                                        )));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Đặt hàng thành công!')),
-                            );
                           },
                           child: const Text('XÁC NHẬN MUA'),
                         ),
