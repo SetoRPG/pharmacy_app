@@ -246,4 +246,15 @@ class OrderController {
       rethrow;
     }
   }
+
+  Future<void> updateOrderStatus(String orderId, String newStatus) async {
+    try {
+      await _firestore
+          .collection('orders')
+          .doc(orderId)
+          .update({'orderStatus': newStatus});
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

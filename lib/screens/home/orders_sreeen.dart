@@ -119,12 +119,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   Text('Trạng thái: ${order['status']}'),
                                 ],
                               ),
-                              trailing: isProcessing
+                              trailing: order['status'] == 'Đang Chờ Xử Lý'
                                   ? IconButton(
-                                      icon: const Icon(Icons.delete,
+                                      icon: const Icon(Icons.cancel,
                                           color: Colors.red),
                                       onPressed: () =>
-                                          _confirmDeleteOrder(order['orderId']),
+                                          _cancelOrder(order['orderId']),
                                     )
                                   : null,
                               onTap: () {
@@ -147,6 +147,40 @@ class _OrdersScreenState extends State<OrdersScreen>
         ],
       ),
     );
+  }
+
+  Future<void> _cancelOrder(String orderId) async {
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xác nhận hủy đơn hàng'),
+        content: const Text('Bạn có chắc chắn muốn hủy đơn hàng này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Không'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hủy'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldCancel == true) {
+      try {
+        await _orderController.updateOrderStatus(orderId, 'CANCELLED');
+        _loadOrders(); // Refresh the orders list after cancellation
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Đơn hàng đã được hủy thành công.'),
+        ));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Hủy đơn hàng thất bại: $e'),
+        ));
+      }
+    }
   }
 
   // Method to confirm deletion
@@ -182,12 +216,14 @@ class _OrdersScreenState extends State<OrdersScreen>
       'Đang Chờ Xử Lý', // PENDING
       'Đã Xác Nhận', // CONFIRMED
       'Đã Giao Hàng', // SHIPPED
-      'Đã Hủy', // CANCELLED
       'Đã Kết Toán', // COMPLETED
     ];
 
-    // Define the color to apply (green for completed stages, grey for uncompleted ones)
+    // Define the color to apply based on the status
     Color getStatusColor(String stage, String currentStatus) {
+      if (currentStatus == 'Đã Hủy') {
+        return Colors.red; // Entire bar turns red for CANCELLED
+      }
       return progressStages.indexOf(stage) <=
               progressStages.indexOf(currentStatus)
           ? const Color(0xFF20B6E8) // Green for completed stages
@@ -196,16 +232,20 @@ class _OrdersScreenState extends State<OrdersScreen>
 
     return SizedBox(
       height: 20,
-      child: Row(
-        children: progressStages.map((stage) {
-          return Expanded(
-            child: Container(
-              color: getStatusColor(stage, status),
-              alignment: Alignment.center,
+      child: status == 'Đã Hủy'
+          ? Container(
+              color: Colors.red, // Full red bar for CANCELLED
+            )
+          : Row(
+              children: progressStages.map((stage) {
+                return Expanded(
+                  child: Container(
+                    color: getStatusColor(stage, status),
+                    alignment: Alignment.center,
+                  ),
+                );
+              }).toList(),
             ),
-          );
-        }).toList(),
-      ),
     );
   }
 }

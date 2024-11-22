@@ -32,7 +32,7 @@ class _MyWidgetState extends State<LoginScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter both email and password")),
+        const SnackBar(content: Text("Vui lòng nhập cả email và mật khẩu.")),
       );
       setState(() {
         _isLoading = false;
@@ -56,7 +56,7 @@ class _MyWidgetState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text(
-                "Login failed. Please check your credentials and email verification.")),
+                "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.")),
       );
     }
 

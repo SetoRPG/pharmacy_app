@@ -135,6 +135,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String password = _passwordController.text.trim();
     String name = _nameController.text.trim();
 
+    // Check if the password length is less than 6 characters
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mật khẩu phải có ít nhất 6 ký tự.'),
+        ),
+      );
+      return; // Exit the function early
+    }
+
     _authController.signUpWithEmailPassword(email, password, name).then((user) {
       if (user != null) {
         // Inform the user to check their email for verification
@@ -155,6 +165,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           }
         });
       }
-    }).catchError((error) {});
+    }).catchError((error) {
+      // Handle other potential errors (e.g., Firebase Auth exceptions)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đăng ký thất bại: ${error.toString()}')),
+      );
+    });
   }
 }

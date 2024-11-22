@@ -108,4 +108,99 @@ class AuthController {
       );
     } catch (e) {}
   }
+
+  // Update user details: name and/or password
+  Future<void> updateUserDetails({
+    String? newName,
+    String? newPassword,
+  }) async {
+    User? user = _auth.currentUser;
+
+    if (user != null) {
+      try {
+        // Get the user's email
+        String email = user.email ?? "";
+
+        // Query Firestore to find the document with the matching email
+        QuerySnapshot snapshot = await _firestore
+            .collection("users")
+            .where('email', isEqualTo: email)
+            .get();
+
+        if (snapshot.docs.isNotEmpty) {
+          // Get the document ID of the matching user
+          String docId = snapshot.docs.first.id;
+
+          // Prepare the update data
+          Map<String, dynamic> updateData = {};
+
+          if (newName != null && newName.isNotEmpty) {
+            updateData['name'] = newName;
+          }
+
+          if (newPassword != null && newPassword.isNotEmpty) {
+            updateData['password'] = newPassword;
+          }
+
+          if (updateData.isNotEmpty) {
+            // Update the user document in Firestore
+            await _firestore.collection("users").doc(docId).update(updateData);
+
+            // Optionally update the Firebase Auth display name
+            if (newName != null && newName.isNotEmpty) {
+              await user.updateDisplayName(newName);
+            }
+
+            // Optionally update the Firebase Auth password
+            if (newPassword != null && newPassword.isNotEmpty) {
+              await user.updatePassword(newPassword);
+            }
+
+            // Reload the user data to reflect changes
+            await user.reload();
+          }
+        } else {
+          debugPrint("No matching user document found for email: $email");
+          throw Exception("User not found in Firestore.");
+        }
+      } on FirebaseAuthException catch (e) {
+        debugPrint("Error updating user details: ${e.message}");
+        rethrow;
+      } catch (e) {
+        debugPrint("General error: $e");
+        rethrow;
+      }
+    }
+  }
+
+  Future<String?> getUsernameByEmail() async {
+    User? user = _auth.currentUser;
+
+    if (user != null) {
+      String email = user.email ?? "";
+
+      try {
+        // Query the Firestore collection to find the document with the matching email
+        QuerySnapshot snapshot = await _firestore
+            .collection("users")
+            .where('email', isEqualTo: email)
+            .get();
+
+        if (snapshot.docs.isNotEmpty) {
+          // Extract the 'name' field from the first matching document
+          String username = snapshot.docs.first.get('name');
+          return username;
+        } else {
+          debugPrint("No user document found for email: $email");
+          return null; // No document found
+        }
+      } catch (e) {
+        debugPrint("Error retrieving username: $e");
+        return null; // Return null in case of an error
+      }
+    }
+
+    debugPrint("No authenticated user found.");
+    return null; // Return null if no user is logged in
+  }
 }

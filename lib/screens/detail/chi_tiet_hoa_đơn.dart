@@ -3,12 +3,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pharmacy_app/controllers/auth_controller.dart';
+import 'package:pharmacy_app/controllers/order_controller.dart';
 
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 
+AuthController _authController = AuthController();
+OrderController _orderController = OrderController();
+
 class OrderDetailScreen extends StatelessWidget {
   final Map<String, dynamic> order;
-
   const OrderDetailScreen({super.key, required this.order});
 
   @override
@@ -38,7 +42,20 @@ class OrderDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text('KH: ${order['userEmail']}'),
+              FutureBuilder<String?>(
+                future: _authController.getUsernameByEmail(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text('Đang tải...');
+                  } else if (snapshot.hasError) {
+                    return const Text('Không thể tải tên khách hàng');
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    return Text('KH: ${snapshot.data}');
+                  } else {
+                    return const Text('Không có thông tin khách hàng');
+                  }
+                },
+              ),
               const SizedBox(height: 8),
               Text(
                   'Địa chỉ: ${order['location']}'), // If address is part of the order data
