@@ -634,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               context); // Close the bottom sheet after adding to cart
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Product added to cart')),
+                                content: Text('Thêm sản phẩm thành công')),
                           );
                         },
                         style: ElevatedButton.styleFrom(

@@ -135,13 +135,9 @@ class _ChangeAccountDetailsScreenState
         newName: newName.isNotEmpty ? newName : null,
         newPassword: newPassword.isNotEmpty ? newPassword : null,
       );
-
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Cập nhật thông tin tài khoản thành công!'),
-      ));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Cập nhật thất bại: ${e.toString()}'),
       ));
     }
   }

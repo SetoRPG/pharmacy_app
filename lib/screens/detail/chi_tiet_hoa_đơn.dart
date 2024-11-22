@@ -68,12 +68,37 @@ class OrderDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              ...items.map((item) => buildProductItem(
-                    item['productName'],
-                    'https://link_to_product_image', // Replace with item-specific image URL if available
-                    item['quantity'],
-                    (item['price'] as num).toInt(),
-                  )),
+              ...items.map((item) {
+                return FutureBuilder<String>(
+                  future:
+                      _orderController.getMedicinePicture(item['productId']),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // Show a loading spinner or placeholder while waiting for the image URL
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      // Handle error if the future fails
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.hasData) {
+                      // Once the future completes, pass the image URL to your buildProductItem method
+                      return buildProductItem(
+                        item['productName'],
+                        snapshot.data!, // Image URL obtained from the Future
+                        item['quantity'],
+                        (item['price'] as num).toInt(),
+                      );
+                    } else {
+                      // If no data is available
+                      return buildProductItem(
+                        item['productName'],
+                        '', // Image URL obtained from the Future
+                        item['quantity'],
+                        (item['price'] as num).toInt(),
+                      );
+                    }
+                  },
+                );
+              }),
               Divider(color: Colors.grey.withOpacity(0.2)),
               Text(
                 'Chi tiết thanh toán',

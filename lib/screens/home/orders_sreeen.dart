@@ -92,7 +92,10 @@ class _OrdersScreenState extends State<OrdersScreen>
           // Body of the screen
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(
+                    color: Color(0xFF16B2A5),
+                  ))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16.0),
                     itemCount: _filteredOrders.length,
@@ -121,7 +124,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                               ),
                               trailing: order['status'] == 'Đang Chờ Xử Lý'
                                   ? IconButton(
-                                      icon: const Icon(Icons.cancel,
+                                      icon: const Icon(Icons.close,
                                           color: Colors.red),
                                       onPressed: () =>
                                           _cancelOrder(order['orderId']),
@@ -158,11 +161,17 @@ class _OrdersScreenState extends State<OrdersScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Không'),
+            child: const Text(
+              'Không',
+              style: TextStyle(color: Color.fromRGBO(117, 117, 117, 1)),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hủy'),
+            child: const Text(
+              'Hủy',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),

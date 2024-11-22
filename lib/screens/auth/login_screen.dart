@@ -211,7 +211,7 @@ class _MyWidgetState extends State<LoginScreen> {
             ? const CircularProgressIndicator(
                 color: Color(0xFF16B2A5)) // Show loading indicator
             : const Text(
-                'Đăng nhập',
+                'Đăng Nhập',
                 style: TextStyle(
                   color: Color.fromRGBO(92, 92, 92, 1), // Text color
                 ),

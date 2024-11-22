@@ -95,6 +95,7 @@ class OrderController {
         List<Map<String, dynamic>> items =
             (doc['orderItemList'] as List<dynamic>)
                 .map((item) => {
+                      'productId': item['productId'] ?? '',
                       'productName': item['productName'] ?? '',
                       'price': item['price'] ?? 0,
                       'quantity': item['quantity'] ?? 0,
@@ -154,12 +155,14 @@ class OrderController {
       List<Map<String, dynamic>> orderItems = [];
       for (var item in items) {
         String productName = item['medName'];
+        String productId = item['medId'];
         double productPrice = (item['medPrice'] is int)
             ? (item['medPrice'] as int).toDouble()
             : item['medPrice'] as double;
         int quantity = item['quantity'];
 
         orderItems.add({
+          'productId': productId,
           'productName': productName,
           'quantity': quantity,
           'price': productPrice,

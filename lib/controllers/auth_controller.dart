@@ -25,6 +25,7 @@ class AuthController {
   Future<User?> signUpWithEmailPassword(
       String email, String password, String userName) async {
     try {
+      // Create the user with email and password
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -36,8 +37,10 @@ class AuthController {
         // Send email verification
         await user.sendEmailVerification();
 
-        // Create custom ID and save user to Firestore
+        // Create custom ID for user
         String customId = _generateCustomId();
+
+        // Save user data to Firestore in "users" collection
         await _firestore.collection("users").doc(customId).set({
           'id': customId,
           'name': userName,
@@ -45,7 +48,22 @@ class AuthController {
           'password': password, // Consider encrypting the password
           'createdAt': FieldValue.serverTimestamp(),
           'emailVerified': false,
-          'basket': []
+          'basket': [],
+          'role': 'CUSTOMER',
+        });
+
+        // Save additional customer data in the "customers" collection
+        await _firestore.collection("customers").doc(customId).set({
+          'cusId': customId,
+          'cusName': userName,
+          'cusEmail': email,
+          'cusAddress': "", // Sample Address
+          'cusDateOfBirth':
+              Timestamp.fromDate(DateTime(1973, 1, 1)), // Example Date of Birth
+          'cusGender': "Male", // Example Gender
+          'cusPhone': "", // Example Phone Number
+          'cusLoyaltyPoints': 0, // Sample loyalty points
+          'cusTransaction': [], // Empty array for now
         });
 
         // Update display name in Firebase Auth
@@ -55,6 +73,7 @@ class AuthController {
 
         // You can notify the user to check their email for verification
       }
+
       return user;
     } on FirebaseAuthException {
       return null;
