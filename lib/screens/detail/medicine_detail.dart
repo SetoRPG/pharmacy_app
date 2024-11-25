@@ -172,7 +172,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                           child: Row(
                             children: [
                               Text(
-                                '${medicineDetails!['medPrice'] ?? '0'} ₫',
+                                '${medicineDetails!['medPrice'].toStringAsFixed(0) ?? '0'} ₫',
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -188,6 +188,23 @@ class _ChiTietSpState extends State<ChiTietSp> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Số lượng tồn kho: ',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    '${medicineDetails!['medStockQuantity'].toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
                               const Text(
                                 'Trường hợp chỉ định',
                                 style: TextStyle(
@@ -374,7 +391,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              "${product['medPrice']} ₫",
+                              "${product['medPrice'].toStringAsFixed(0)} ₫",
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,

@@ -181,7 +181,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ),
         title: Text(product['medName'] ?? 'Unknown Product Name'),
         subtitle: Text(
-          '${product['medPrice']} ₫',
+          '${product['medPrice'].toStringAsFixed(0)} ₫',
           style: const TextStyle(
               fontSize: 18, color: Colors.red, fontWeight: FontWeight.bold),
         ),
@@ -266,7 +266,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              "${product['medPrice']} ₫",
+                              "${product['medPrice'].toStringAsFixed(0)} ₫",
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,

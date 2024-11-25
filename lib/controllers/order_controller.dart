@@ -108,8 +108,8 @@ class OrderController {
               doc['orderNote'] ?? '', // Assuming 'orderNote' is the new field
           'orderId': doc['orderId'] ?? '',
           'status': statusText,
-          'total': doc['totalAmount'].toStringAsFixed(2) +
-              'đ', // Assuming 'totalAmount' is the new field
+          'total': doc['totalAmount']
+              .toStringAsFixed(2), // Assuming 'totalAmount' is the new field
           'paymentStatus': doc['paymentStatus'] ?? '',
           'customer': doc['customer'] ?? '',
           'orderDate': (doc['orderDate'] as Timestamp).toDate(),
@@ -122,10 +122,11 @@ class OrderController {
   }
 
   // Function to create an order with multiple items
-  Future<void> createOrderWithMultipleItems(
-      {required List<Map<String, dynamic>> items, // List of items to order
-      String? note,
-      String? location}) async {
+  Future<void> createOrderWithMultipleItems({
+    required List<Map<String, dynamic>> items, // List of items to order
+    String? note,
+    String? location,
+  }) async {
     try {
       // Get the current user
       User? user = _auth.currentUser;
@@ -154,12 +155,13 @@ class OrderController {
       // Prepare the items for the order and calculate total price
       List<Map<String, dynamic>> orderItems = [];
       for (var item in items) {
-        String productName = item['medName'];
-        String productId = item['medId'];
-        double productPrice = (item['medPrice'] is int)
-            ? (item['medPrice'] as int).toDouble()
-            : item['medPrice'] as double;
-        int quantity = item['quantity'];
+        // Handle multiple possible keys for item properties
+        String productName =
+            item['medName'] ?? item['productName'] ?? 'Unknown Product';
+        String productId = item['medId'] ?? item['productId'] ?? '';
+        double productPrice =
+            double.tryParse('${item['medPrice'] ?? item['price']}') ?? 0.0;
+        int quantity = item['quantity'] ?? 0;
 
         orderItems.add({
           'productId': productId,
