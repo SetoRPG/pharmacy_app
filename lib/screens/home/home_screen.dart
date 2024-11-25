@@ -275,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Price
               Text(
-                '${medicine['medPrice']} ₫',
+                '${medicine['medPrice'].toStringAsFixed(0)} ₫',
                 style: const TextStyle(
                     fontSize: 24,
                     color: Colors.red,
@@ -550,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              "${product['medPrice']} ₫",
+                              "${product['medPrice'].toStringAsFixed(0)} ₫",
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,

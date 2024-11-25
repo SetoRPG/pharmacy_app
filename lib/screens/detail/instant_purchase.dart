@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
+import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -81,7 +82,7 @@ class _PaymentPageState extends State<PaymentPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter a valid address.'),
+          content: Text('Hãy nhập địa chỉ đúng.'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -234,54 +235,62 @@ class _PaymentPageState extends State<PaymentPage> {
               height: 16,
             ),
             Expanded(
-              child: Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: ListView.builder(
-                    itemCount: widget.items.length,
-                    itemBuilder: (context, index) {
-                      var item = widget.items[index];
-                      String? imageUrl = _imageCache[item['medId']];
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: ListView.builder(
+                  itemCount: widget.items.length,
+                  itemBuilder: (context, index) {
+                    var item = widget.items[index];
 
-                      return ListTile(
-                        leading: imageUrl != null
-                            ? Image.network(imageUrl, fit: BoxFit.cover)
-                            : FutureBuilder<String>(
-                                future: _orderController
-                                    .getMedicinePicture(item['medId']),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const CircularProgressIndicator();
-                                  } else if (snapshot.hasError) {
-                                    return const Icon(Icons.error);
-                                  } else {
-                                    _imageCache[item['medId']] =
-                                        snapshot.data; // Cache the result
-                                    return Image.network(snapshot.data!,
-                                        fit: BoxFit.cover);
-                                  }
-                                },
-                              ),
-                        title: Text(
-                          item['medName'] ?? '',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                    // Use the fallback keys
+                    String id = item['medId'] ?? item['productId'] ?? '';
+                    String name = item['medName'] ?? item['productName'] ?? '';
+                    double price = double.tryParse(
+                            '${item['medPrice'] ?? item['price']}') ??
+                        0.0;
+                    int quantity = item['quantity'] ?? 0;
+
+                    // Fetch image from cache or API
+                    String? imageUrl = _imageCache[id];
+
+                    return ListTile(
+                      leading: imageUrl != null
+                          ? Image.network(imageUrl, fit: BoxFit.cover)
+                          : FutureBuilder<String>(
+                              future: _orderController.getMedicinePicture(id),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                } else if (snapshot.hasError) {
+                                  return const Icon(Icons.error);
+                                } else {
+                                  _imageCache[id] =
+                                      snapshot.data; // Cache the result
+                                  return Image.network(snapshot.data!,
+                                      fit: BoxFit.cover);
+                                }
+                              },
+                            ),
+                      title: Text(
+                        name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text('Số lượng: $quantity'),
+                      trailing: Text(
+                        '${price.toStringAsFixed(0)} ₫',
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
                         ),
-                        subtitle: Text('Số lượng: ${item['quantity']}'),
-                        trailing: Text(
-                          '${(item['medPrice']).toStringAsFixed(0)} ₫',
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
             Row(
               children: [
@@ -461,7 +470,25 @@ class MapView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Map View'),
+        elevation: 10,
+        shadowColor: Colors.black,
+        title: const CustomText(text: 'BẢN ĐỒ', size: 20),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF20B6E8), Color(0xFF16B2A5)],
+            ),
+          ),
+        ),
       ),
       body: FlutterMap(
         options: MapOptions(

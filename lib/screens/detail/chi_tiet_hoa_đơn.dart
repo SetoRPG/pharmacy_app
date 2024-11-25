@@ -107,9 +107,11 @@ class OrderDetailScreen extends StatelessWidget {
                   fontSize: 18,
                 ),
               ),
-              buildPaymentDetailRow('Tiền hàng', '${order['total']} đ'),
+              buildPaymentDetailRow(
+                  'Tiền hàng', '${removeDecimal(order['total'])} đ'),
               buildPaymentDetailRow('Phí vận chuyển', '0 đ'),
-              buildPaymentDetailRow('Tổng thanh toán', '${order['total']} đ',
+              buildPaymentDetailRow(
+                  'Tổng thanh toán', '${removeDecimal(order['total'])} đ',
                   isBold: true, isRed: true),
               const SizedBox(height: 16),
               Text(
@@ -126,6 +128,17 @@ class OrderDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String removeDecimal(String number) {
+    try {
+      // Convert the string to a double and format it as an integer
+      double value = double.parse(number);
+      return value.toStringAsFixed(0);
+    } catch (e) {
+      // Return the original number or an error message if parsing fails
+      return number;
+    }
   }
 
   Widget buildProductItem(
