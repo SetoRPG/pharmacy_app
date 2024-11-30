@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
@@ -28,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
   Timer? _scrollTimer;
   bool _isUserInteracting = false;
+  final formatter = NumberFormat.decimalPattern();
 
   final List<String> imagePaths = [
     'assets/sales_banner.jpg',
@@ -275,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Price
               Text(
-                '${medicine['medPrice'].toStringAsFixed(0)} ₫',
+                '${formatter.format(medicine['medPrice'])} ₫',
                 style: const TextStyle(
                     fontSize: 24,
                     color: Colors.red,
@@ -550,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              "${product['medPrice'].toStringAsFixed(0)} ₫",
+                              "${formatter.format(product['medPrice'])} ₫",
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,

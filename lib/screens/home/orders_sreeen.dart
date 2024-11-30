@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/screens/detail/chi_tiet_hoa_%C4%91%C6%A1n.dart';
@@ -19,6 +20,7 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen>
     with SingleTickerProviderStateMixin {
   final OrderController _orderController = OrderController();
+  final formatter = NumberFormat.decimalPattern();
   List<Map<String, dynamic>> _orders = [];
   List<Map<String, dynamic>> _filteredOrders = [];
   bool _isLoading = true;
@@ -158,7 +160,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Ngày tạo: ${order['orderDate']}'),
-                                  Text('Tổng tiền: ${order['total']}đ'),
+                                  Text(
+                                      'Tổng tiền: ${formatter.format(double.parse(order['total']))} đ'),
                                   Text('Trạng thái: ${order['status']}'),
                                 ],
                               ),

@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
@@ -25,6 +26,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
   Map<String, dynamic>? medicineDetails;
   final PageController _pageController = PageController();
   bool isFavorite = false;
+  final formatter = NumberFormat.decimalPattern();
   String? userEmail;
 
   @override
@@ -247,7 +249,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                           child: Row(
                             children: [
                               Text(
-                                '${medicineDetails!['medPrice'].toStringAsFixed(0) ?? '0'} ₫',
+                                '${formatter.format(medicineDetails!['medPrice'])} ₫',
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -466,7 +468,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              "${product['medPrice'].toStringAsFixed(0)} ₫",
+                              "${formatter.format(product['medPrice'])} ₫",
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,

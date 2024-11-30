@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
@@ -15,14 +16,9 @@ class FavoriteProductsScreen extends StatefulWidget {
 }
 
 class _FavoriteProductsScreenState extends State<FavoriteProductsScreen> {
-  List<Map<String, dynamic>> _favoriteProducts = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadFavoriteProducts();
-  }
+  FirebaseAuth auth = FirebaseAuth.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final formatter = NumberFormat.decimalPattern();
 
   String _getImageUrl(String gsUrl) {
     const storageBaseUrl =
@@ -34,78 +30,34 @@ class _FavoriteProductsScreenState extends State<FavoriteProductsScreen> {
     return gsUrl;
   }
 
-  Future<void> _loadFavoriteProducts() async {
-    try {
-      FirebaseAuth auth = FirebaseAuth.instance;
-      FirebaseFirestore firestore = FirebaseFirestore.instance;
-      User? user = auth.currentUser;
-
-      if (user == null) {
-        throw Exception("Người dùng chưa đăng nhập.");
+  Stream<List<Map<String, dynamic>>> _getFavoriteProductsStream() {
+    // Listen to changes on the user's document
+    return firestore
+        .collection("users")
+        .where("email", isEqualTo: auth.currentUser?.email ?? "")
+        .snapshots()
+        .asyncMap((userSnapshot) async {
+      if (userSnapshot.docs.isEmpty) {
+        return [];
       }
 
-      String userEmail = user.email ?? "";
-      QuerySnapshot snapshot = await firestore
-          .collection("users")
-          .where("email", isEqualTo: userEmail)
-          .get();
-
-      debugPrint("Number of user documents found: ${snapshot.docs.length}");
-      if (snapshot.docs.isEmpty) {
-        throw Exception("Không tìm thấy người dùng.");
-      }
-
-      QueryDocumentSnapshot userDoc = snapshot.docs.first;
+      final userDoc = userSnapshot.docs.first;
       List<dynamic> favoriteIds = userDoc.get('favoriteList') ?? [];
 
-      if (favoriteIds.isNotEmpty) {
-        QuerySnapshot productSnapshot = await firestore
-            .collection('medicines')
-            .where(FieldPath.documentId, whereIn: favoriteIds)
-            .get();
-
-        setState(() {
-          _favoriteProducts = productSnapshot.docs
-              .map((doc) =>
-                  {'id': doc.id, ...doc.data() as Map<String, dynamic>})
-              .toList();
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _favoriteProducts = [];
-          _isLoading = false;
-        });
+      if (favoriteIds.isEmpty) {
+        return [];
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Lỗi khi tải sản phẩm yêu thích: $e'),
-      ));
-    }
-  }
 
-  void _rePurchaseProduct(Map<String, dynamic> product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentPage(
-          items: [product],
-          totalPrice: product['price']?.toDouble() ?? 0.0,
-        ),
-      ),
-    );
-  }
+      // Get products by their IDs
+      QuerySnapshot productSnapshot = await firestore
+          .collection('medicines')
+          .where(FieldPath.documentId, whereIn: favoriteIds)
+          .get();
 
-  void _viewProductDetail(Map<String, dynamic> product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChiTietSp(medicineId: product['id']),
-      ),
-    );
+      return productSnapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
+          .toList();
+    });
   }
 
   @override
@@ -132,38 +84,62 @@ class _FavoriteProductsScreenState extends State<FavoriteProductsScreen> {
           ),
         ),
       ),
-      body: _isLoading
-          ? const Center(
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _getFavoriteProductsStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
               child: CircularProgressIndicator(color: Color(0xFF16B2A5)),
-            )
-          : _favoriteProducts.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Không có sản phẩm yêu thích.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: _favoriteProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = _favoriteProducts[index];
-                    return _buildFavoriteCard(product);
-                  },
-                ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Lỗi khi tải sản phẩm yêu thích: ${snapshot.error}',
+                style: const TextStyle(fontSize: 16, color: Colors.red),
+              ),
+            );
+          }
+
+          final favoriteProducts = snapshot.data ?? [];
+
+          if (favoriteProducts.isEmpty) {
+            return const Center(
+              child: Text(
+                'Không có sản phẩm yêu thích.',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: favoriteProducts.length,
+            itemBuilder: (context, index) {
+              final product = favoriteProducts[index];
+              return _buildFavoriteCard(product);
+            },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildFavoriteCard(Map<String, dynamic> product) {
-    return Card(
-      surfaceTintColor: Colors.transparent,
-      shadowColor: Colors.black,
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: GestureDetector(
-        onTap: () =>
-            _viewProductDetail(product), // Navigate to detail page on tap
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChiTietSp(medicineId: product['medSku']),
+        ),
+      ), // Navigate to detail page on tap
+      child: Card(
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.black,
+        elevation: 4,
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -194,7 +170,7 @@ class _FavoriteProductsScreenState extends State<FavoriteProductsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Giá: ${product['medPrice'].toStringAsFixed(0)} đ',
+                      'Giá: ${formatter.format(product['medPrice'])} đ',
                       style: const TextStyle(
                         fontSize: 15,
                         color: Colors.red,

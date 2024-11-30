@@ -3,6 +3,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
@@ -29,6 +30,7 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
+  final formatter = NumberFormat.decimalPattern();
   String location = ''; // Stores the user's address input
   double? selectedLat;
   double? selectedLng;
@@ -279,7 +281,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       ),
                       subtitle: Text('Số lượng: $quantity'),
                       trailing: Text(
-                        '${price.toStringAsFixed(0)} ₫',
+                        '${formatter.format(price)} ₫',
                         style: const TextStyle(
                           color: Colors.red,
                           fontWeight: FontWeight.bold,
@@ -448,7 +450,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
           ),
           Text(
-            '${amount.toStringAsFixed(0)} ₫',
+            '${formatter.format(amount)} ₫',
             style: TextStyle(
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               color: isBold ? Colors.red : Colors.black,

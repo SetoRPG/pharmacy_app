@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
@@ -22,6 +23,7 @@ class _BasketPageState extends State<BasketPage> {
   final List<Map<String, dynamic>> _basketItems = [];
   final List<String> _selectedItems = [];
   final Map<String, String?> _imageCache = {};
+  final formatter = NumberFormat.decimalPattern();
   bool _isLoading = true;
   double _totalPrice = 0.0;
 
@@ -309,7 +311,7 @@ class _BasketPageState extends State<BasketPage> {
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
-                                                  '${medicine['medPrice'].toStringAsFixed(0)} ₫',
+                                                  '${formatter.format(medicine['medPrice'])} ₫',
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.bold,
@@ -482,7 +484,7 @@ class _BasketPageState extends State<BasketPage> {
                             const Text('Tổng giá:'),
                             const SizedBox(width: 5),
                             Text(
-                              '${_totalPrice.toStringAsFixed(0)} ₫',
+                              '${formatter.format(_totalPrice)} ₫',
                               style: const TextStyle(
                                   color: Colors.red,
                                   fontWeight: FontWeight.bold,

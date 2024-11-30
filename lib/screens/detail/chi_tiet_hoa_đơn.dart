@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 
@@ -10,9 +11,11 @@ import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 
 AuthController _authController = AuthController();
 OrderController _orderController = OrderController();
+final formatter = NumberFormat.decimalPattern();
 
 class OrderDetailScreen extends StatelessWidget {
   final Map<String, dynamic> order;
+
   const OrderDetailScreen({super.key, required this.order});
 
   @override
@@ -107,11 +110,11 @@ class OrderDetailScreen extends StatelessWidget {
                   fontSize: 18,
                 ),
               ),
-              buildPaymentDetailRow(
-                  'Tiền hàng', '${removeDecimal(order['total'])} đ'),
+              buildPaymentDetailRow('Tiền hàng',
+                  '${formatter.format(double.parse(order['total']))} đ'),
               buildPaymentDetailRow('Phí vận chuyển', '0 đ'),
-              buildPaymentDetailRow(
-                  'Tổng thanh toán', '${removeDecimal(order['total'])} đ',
+              buildPaymentDetailRow('Tổng thanh toán',
+                  '${formatter.format(double.parse(order['total']))} đ',
                   isBold: true, isRed: true),
               const SizedBox(height: 16),
               Text(
@@ -155,8 +158,8 @@ class OrderDetailScreen extends StatelessWidget {
       title: Text(name,
           style: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.bold)),
       subtitle: Text('x $quantity', style: GoogleFonts.lato(fontSize: 14)),
-      trailing:
-          Text('${price * quantity} đ', style: GoogleFonts.lato(fontSize: 16)),
+      trailing: Text('${formatter.format(price * quantity)} đ',
+          style: GoogleFonts.lato(fontSize: 16)),
     );
   }
 

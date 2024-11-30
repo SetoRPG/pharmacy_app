@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/detail/chi_tiet_hoa_%C4%91%C6%A1n.dart';
@@ -13,6 +14,7 @@ class PurchaseHistoryScreen extends StatefulWidget {
 
 class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
   final OrderController _orderController = OrderController();
+  final formatter = NumberFormat.decimalPattern();
   List<Map<String, dynamic>> _completedOrders = [];
   bool _isLoading = true;
 
@@ -139,7 +141,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
             ),
             const SizedBox(height: 8),
             Text('Ngày hoàn tất: ${order['orderDate']}'),
-            Text('Tổng tiền: ${removeDecimal(order['total'])} đ'),
+            Text(
+                'Tổng tiền: ${formatter.format(double.parse(order['total']))} đ'),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

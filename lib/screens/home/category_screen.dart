@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
@@ -20,6 +21,7 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final MedicineController _medicineController = MedicineController();
   final OrderController _orderController = OrderController();
+  final formatter = NumberFormat.decimalPattern();
   List<Map<String, dynamic>> _medicines = [];
   List<String> _categories = ["All"];
   String _selectedCategory = "All";
@@ -181,7 +183,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ),
         title: Text(product['medName'] ?? 'Unknown Product Name'),
         subtitle: Text(
-          '${product['medPrice'].toStringAsFixed(0)} ₫',
+          '${formatter.format(product['medPrice'])} ₫',
           style: const TextStyle(
               fontSize: 18, color: Colors.red, fontWeight: FontWeight.bold),
         ),
@@ -266,7 +268,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              "${product['medPrice'].toStringAsFixed(0)} ₫",
+                              "${formatter.format(product['medPrice'])} ₫",
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.bold,
