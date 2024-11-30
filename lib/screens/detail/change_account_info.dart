@@ -15,7 +15,52 @@ class _ChangeAccountDetailsScreenState
     extends State<ChangeAccountDetailsScreen> {
   final TextEditingController _newNameController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _newAddressController = TextEditingController();
+  final TextEditingController _newPhoneController = TextEditingController();
+  final TextEditingController _dobController =
+      TextEditingController(); // Move out of GestureDetector
+  DateTime? _newDateOfBirth;
+  String? _newGender;
+
+  bool _isLoading = true;
   final AuthController _authController = AuthController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the controller when the widget is removed from the tree
+    _dobController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final userData = await _authController.getUserData();
+      setState(() {
+        _newNameController.text = userData['name'] ?? '';
+        _newAddressController.text = userData['address'] ?? '';
+        _newPhoneController.text = userData['phone'] ?? '';
+        _newGender = userData['gender'];
+        _newDateOfBirth = userData['dateOfBirth'];
+        _dobController.text = _newDateOfBirth == null
+            ? 'Ngày sinh'
+            : "${_newDateOfBirth!.day}-${_newDateOfBirth!.month}-${_newDateOfBirth!.year}";
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Lỗi tải thông tin người dùng: ${e.toString()}'),
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,27 +89,68 @@ class _ChangeAccountDetailsScreenState
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                CustomTextField(
-                  controller: _newNameController,
-                  hintText: 'Tên mới',
-                  prefixIcon: Icons.person,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      CustomTextField(
+                        controller: _newNameController,
+                        hintText: 'Họ Tên',
+                        prefixIcon: Icons.person,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: _newPasswordController,
+                        hintText: 'Mật khẩu',
+                        prefixIcon: Icons.lock,
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: _newAddressController,
+                        hintText: 'Địa chỉ',
+                        prefixIcon: Icons.home,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: _newPhoneController,
+                        hintText: 'Số điện thoại',
+                        prefixIcon: Icons.phone,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: _selectDate,
+                        child: AbsorbPointer(
+                          child: CustomTextField(
+                            controller:
+                                _dobController, // Use _dobController here
+                            hintText: 'Ngày sinh',
+                            prefixIcon: Icons.calendar_today,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _newGender,
+                        hint: const Text('Giới tính'),
+                        onChanged: (value) {
+                          setState(() {
+                            _newGender = value;
+                          });
+                        },
+                        items: const [
+                          DropdownMenuItem(value: 'Male', child: Text('Nam')),
+                          DropdownMenuItem(value: 'Female', child: Text('Nữ')),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      _updateButton(context, "Cập Nhật", _updateAccountDetails),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  controller: _newPasswordController,
-                  hintText: 'Mật khẩu mới',
-                  prefixIcon: Icons.lock,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 32),
-                _updateButton(context, "Cập Nhật", _updateAccountDetails),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -111,33 +197,41 @@ class _ChangeAccountDetailsScreenState
     );
   }
 
+  void _selectDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _newDateOfBirth ??
+          DateTime(2000), // Default to 2000 if no date is selected
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _newDateOfBirth = pickedDate;
+        // Update the controller's text
+        _dobController.text =
+            "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+      });
+    }
+  }
+
   void _updateAccountDetails() async {
-    String newName = _newNameController.text.trim();
-    String newPassword = _newPasswordController.text.trim();
-
-    if (newName.isEmpty && newPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Vui lòng nhập tên hoặc mật khẩu mới để cập nhật.'),
-      ));
-      return;
-    }
-
-    // Check if the password length is less than 6 characters
-    if (newPassword.isNotEmpty && newPassword.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Mật khẩu mới phải có ít nhất 6 ký tự.'),
-      ));
-      return; // Exit the function early
-    }
-
     try {
       await _authController.updateUserDetails(
-        newName: newName.isNotEmpty ? newName : null,
-        newPassword: newPassword.isNotEmpty ? newPassword : null,
+        newName: _newNameController.text.trim(),
+        newPassword: _newPasswordController.text.trim(),
+        newAddress: _newAddressController.text.trim(),
+        newPhone: _newPhoneController.text.trim(),
+        newDateOfBirth: _newDateOfBirth,
+        newGender: _newGender,
       );
-    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Cập nhật thông tin tài khoản thành công!'),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Cập nhật thất bại: ${e.toString()}'),
       ));
     }
   }

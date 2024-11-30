@@ -1,5 +1,8 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
@@ -21,6 +24,8 @@ class _OrdersScreenState extends State<OrdersScreen>
   bool _isLoading = true;
   late TabController _tabController;
 
+  StreamSubscription<QuerySnapshot>? _ordersSubscription;
+
   // Define the order statuses
   final List<String> _statusTabs = [
     'Đang Chờ Xử Lý', // PENDING
@@ -34,34 +39,69 @@ class _OrdersScreenState extends State<OrdersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _statusTabs.length, vsync: this);
-    _loadOrders();
+    _initializeOrderListener();
+  }
+
+  void _initializeOrderListener() async {
+    final customerId = await _getCurrentUserId();
+    if (customerId.isNotEmpty) {
+      _ordersSubscription = FirebaseFirestore.instance
+          .collection('orders')
+          .where('customer', isEqualTo: customerId)
+          .snapshots()
+          .listen((_) => _loadOrders());
+    }
   }
 
   Future<void> _loadOrders() async {
+    setState(() {
+      _isLoading = true; // Show loading indicator while fetching
+    });
     try {
       final orders = await _orderController.getOrdersForCurrentUser();
       setState(() {
         _orders = orders;
         _filteredOrders = orders
-            .where((order) => order['status'] == _statusTabs[0])
-            .toList(); // Initially show only 'Đang Chờ Xử Lý' orders
+            .where(
+                (order) => order['status'] == _statusTabs[_tabController.index])
+            .toList();
         _isLoading = false;
       });
-      // Debug print
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      // Optionally show an error message here
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Failed to load orders: $e'),
+      ));
     }
   }
 
-  // Filter orders based on the selected status
+  // Extracts the current user ID using `getOrdersForCurrentUser`
+  Future<String> _getCurrentUserId() async {
+    try {
+      final orders = await _orderController.getOrdersForCurrentUser();
+      if (orders.isNotEmpty) {
+        return orders.first['customer'];
+      }
+      return '';
+    } catch (e) {
+      return ''; // Return an empty string if there's an error
+    }
+  }
+
   void _filterOrdersByStatus(String status) {
     setState(() {
       _filteredOrders =
           _orders.where((order) => order['status'] == status).toList();
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _ordersSubscription?.cancel(); // Cancel Firestore listener
+    super.dispose();
   }
 
   @override

@@ -1,5 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
@@ -22,11 +24,14 @@ class _ChiTietSpState extends State<ChiTietSp> {
   final OrderController _orderController = OrderController();
   Map<String, dynamic>? medicineDetails;
   final PageController _pageController = PageController();
+  bool isFavorite = false;
+  String? userEmail;
 
   @override
   void initState() {
     super.initState();
     _fetchMedicineDetails();
+    _fetchUserFavorites();
   }
 
   Future<void> _fetchMedicineDetails() async {
@@ -35,6 +40,58 @@ class _ChiTietSpState extends State<ChiTietSp> {
     setState(() {
       medicineDetails = details;
     });
+  }
+
+  Future<void> _fetchUserFavorites() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userEmail = user.email;
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: user.email)
+          .limit(1)
+          .get();
+
+      if (userDoc.docs.isNotEmpty) {
+        final userData = userDoc.docs.first.data();
+        final List<dynamic>? favoriteList = userData['favoriteList'];
+        setState(() {
+          isFavorite = favoriteList?.contains(widget.medicineId) ?? false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (userEmail == null) return;
+
+    final userQuery = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: userEmail)
+        .limit(1)
+        .get();
+
+    if (userQuery.docs.isNotEmpty) {
+      final userDoc = userQuery.docs.first;
+      final userData = userDoc.data();
+      final List<dynamic> favoriteList =
+          List<dynamic>.from(userData['favoriteList'] ?? []);
+
+      setState(() {
+        if (isFavorite) {
+          favoriteList.remove(widget.medicineId);
+          isFavorite = false;
+        } else {
+          favoriteList.add(widget.medicineId);
+          isFavorite = true;
+        }
+      });
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userDoc.id)
+          .update({'favoriteList': favoriteList});
+    }
   }
 
   String _getImageUrl(String gsUrl) {
@@ -145,12 +202,30 @@ class _ChiTietSpState extends State<ChiTietSp> {
                         ),
                         Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            medicineDetails!['medName'] ?? 'Unknown Medicine',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  medicineDetails!['medName'] ??
+                                      'Unknown Medicine',
+                                  style: const TextStyle(
+                                    fontSize: 27,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.clip,
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  isFavorite
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isFavorite ? Colors.pink : Colors.grey,
+                                ),
+                                onPressed: _toggleFavorite,
+                              ),
+                            ],
                           ),
                         ),
                         Padding(

@@ -3,6 +3,7 @@ import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
 import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 import 'package:pharmacy_app/screens/detail/change_account_info.dart';
+import 'package:pharmacy_app/screens/detail/favorite_screen.dart';
 import 'package:pharmacy_app/screens/detail/purchase_history.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -40,6 +41,18 @@ class AccountScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: ((context) => const PurchaseHistoryScreen())));
+            },
+          ),
+          const Divider(),
+          _buildAccountOption(
+            context,
+            title: 'Sản phảm yêu thích',
+            icon: Icons.favorite,
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: ((context) => const FavoriteProductsScreen())));
             },
           ),
           const Divider(),

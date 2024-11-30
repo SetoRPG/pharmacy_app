@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
@@ -139,11 +140,12 @@ class _MyWidgetState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
-                            onPressed: () {
-                              // PASS RECOVER
-                            },
-                            child: const CustomText(
-                                text: 'Quên mật khẩu', size: 14)),
+                          onPressed: () {
+                            _showForgotPasswordDialog(context);
+                          },
+                          child:
+                              const CustomText(text: 'Quên mật khẩu', size: 14),
+                        ),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
@@ -218,5 +220,84 @@ class _MyWidgetState extends State<LoginScreen> {
               ),
       ),
     );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final TextEditingController emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Khôi phục mật khẩu"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Vui lòng nhập email của bạn để nhận mật khẩu."),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Hủy"),
+            ),
+            TextButton(
+              onPressed: () {
+                final email = emailController.text.trim();
+                if (email.isNotEmpty) {
+                  _sendPasswordToEmail(email);
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Vui lòng nhập email hợp lệ."),
+                  ));
+                }
+              },
+              child: const Text("Gửi"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _sendPasswordToEmail(String email) async {
+    try {
+      // Query the `users` collection to find the user by email
+      QuerySnapshot userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      if (userQuery.docs.isNotEmpty) {
+        final userDoc = userQuery.docs.first;
+        final String password = userDoc['password'];
+
+        // Use Firebase Functions or another email-sending service here
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text("Yêu cầu đặt lại mặt khẩu đã được gửi đến email của bạn."),
+        ));
+      } else {
+        throw Exception("Không tìm thấy người dùng với email này.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Lỗi khi gửi email: $e"),
+      ));
+    }
   }
 }

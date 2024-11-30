@@ -7,6 +7,7 @@ class CustomTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final bool obscureText;
   final TextEditingController controller;
+  final TextInputType? keyboardType;
 
   const CustomTextField({
     super.key,
@@ -14,6 +15,7 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.obscureText = false,
     required this.controller,
+    this.keyboardType,
   });
 
   @override
@@ -41,6 +43,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      keyboardType: widget.keyboardType,
       controller: widget.controller,
       focusNode: _focusNode,
       obscureText: widget.obscureText,

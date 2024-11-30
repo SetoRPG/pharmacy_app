@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
@@ -15,7 +16,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  DateTime? _selectedDateOfBirth;
+  String? _selectedGender;
+
   final AuthController _authController = AuthController();
+
+  @override
+  void initState() {
+    super.initState();
+    _dobController.text = 'Ngày Sinh';
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the controller when the widget is removed from the tree
+    _dobController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +69,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Image.asset('assets/logo.jpg', height: 170),
+                  padding: const EdgeInsets.all(0),
+                  child: Image.asset('assets/logo.jpg', height: 90),
                 ),
                 _buildRegisterForm(),
               ],
@@ -81,6 +101,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
           hintText: 'Mật khẩu',
           prefixIcon: Icons.lock,
           obscureText: true,
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          controller: _addressController,
+          hintText: 'Địa Chỉ',
+          prefixIcon: Icons.home,
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          controller: _phoneController,
+          hintText: 'Số Điện Thoại',
+          prefixIcon: Icons.phone,
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: _selectDate,
+          child: AbsorbPointer(
+            child: CustomTextField(
+              controller: _dobController,
+              hintText: 'Ngày Sinh',
+              prefixIcon: Icons.calendar_today,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          value: _selectedGender,
+          hint: const Text('Giới Tính'),
+          onChanged: (value) {
+            setState(() {
+              _selectedGender = value;
+            });
+          },
+          items: const [
+            DropdownMenuItem(value: 'Male', child: Text('Nam')),
+            DropdownMenuItem(value: 'Female', child: Text('Nữ')),
+          ],
         ),
         const SizedBox(height: 32),
         _registerButton(context, "Đăng Ký", _registerUser),
@@ -130,43 +188,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  void _selectDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _selectedDateOfBirth = pickedDate;
+
+        _dobController.text =
+            "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+      });
+    }
+  }
+
   void _registerUser() {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
     String name = _nameController.text.trim();
+    String address = _addressController.text.trim();
+    String phone = _phoneController.text.trim();
 
-    // Check if the password length is less than 6 characters
-    if (password.length < 6) {
+    if (_selectedDateOfBirth == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mật khẩu phải có ít nhất 6 ký tự.'),
-        ),
+        const SnackBar(content: Text('Vui lòng chọn ngày sinh.')),
       );
-      return; // Exit the function early
+      return;
     }
 
-    _authController.signUpWithEmailPassword(email, password, name).then((user) {
-      if (user != null) {
-        // Inform the user to check their email for verification
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Email xác nhận đã được gửi đến $email. Vui lòng xác nhận email của bạn.')),
-        );
+    if (_selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn giới tính.')),
+      );
+      return;
+    }
 
-        // Optionally, check if the email is verified after some time
-        _authController.isEmailVerified(user).then((isVerified) {
-          if (isVerified) {
-            // Email verified, proceed with login or other actions
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()));
-          } else {
-            // Handle case where the email is not verified
-          }
-        });
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mật khẩu phải có ít nhất 6 ký tự.')),
+      );
+      return;
+    }
+
+    _authController
+        .signUpWithEmailPassword(
+      email: email,
+      password: password,
+      userName: name,
+      address: address,
+      phone: phone,
+      dateOfBirth: _selectedDateOfBirth!,
+      gender: _selectedGender!,
+    )
+        .then((user) {
+      if (user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Email xác nhận đã được gửi đến $email.')),
+        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
       }
     }).catchError((error) {
-      // Handle other potential errors (e.g., Firebase Auth exceptions)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Đăng ký thất bại: ${error.toString()}')),
       );

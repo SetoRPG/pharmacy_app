@@ -22,8 +22,15 @@ class AuthController {
   }
 
   // Step 1: Register user with email and password and send email verification
-  Future<User?> signUpWithEmailPassword(
-      String email, String password, String userName) async {
+  Future<User?> signUpWithEmailPassword({
+    required String email,
+    required String password,
+    required String userName,
+    required String address,
+    required String phone,
+    required DateTime dateOfBirth,
+    required String gender,
+  }) async {
     try {
       // Create the user with email and password
       UserCredential userCredential =
@@ -37,7 +44,7 @@ class AuthController {
         // Send email verification
         await user.sendEmailVerification();
 
-        // Create custom ID for user
+        // Generate custom ID for the user
         String customId = _generateCustomId();
 
         // Save user data to Firestore in "users" collection
@@ -57,21 +64,18 @@ class AuthController {
           'cusId': customId,
           'cusName': userName,
           'cusEmail': email,
-          'cusAddress': "", // Sample Address
-          'cusDateOfBirth':
-              Timestamp.fromDate(DateTime(1973, 1, 1)), // Example Date of Birth
-          'cusGender': "Male", // Example Gender
-          'cusPhone': "", // Example Phone Number
-          'cusLoyaltyPoints': 0, // Sample loyalty points
-          'cusTransaction': [], // Empty array for now
+          'cusAddress': address,
+          'cusDateOfBirth': Timestamp.fromDate(dateOfBirth),
+          'cusGender': gender,
+          'cusPhone': phone,
+          'cusLoyaltyPoints': 0,
+          'cusTransaction': [],
         });
 
         // Update display name in Firebase Auth
         await user.updateDisplayName(userName);
         await user.reload();
         user = _auth.currentUser;
-
-        // You can notify the user to check their email for verification
       }
 
       return user;
@@ -132,63 +136,96 @@ class AuthController {
   Future<void> updateUserDetails({
     String? newName,
     String? newPassword,
+    String? newAddress,
+    String? newPhone,
+    DateTime? newDateOfBirth,
+    String? newGender,
   }) async {
-    User? user = _auth.currentUser;
+    User? user = _auth.currentUser; // Get the currently authenticated user
+    if (user == null) {
+      throw Exception("No authenticated user found.");
+    }
 
-    if (user != null) {
-      try {
-        // Get the user's email
-        String email = user.email ?? "";
+    String email = user.email ?? "";
+    if (email.isEmpty) {
+      throw Exception("User email not available.");
+    }
 
-        // Query Firestore to find the document with the matching email
-        QuerySnapshot snapshot = await _firestore
-            .collection("users")
-            .where('email', isEqualTo: email)
-            .get();
+    try {
+      // Get document reference for both collections
+      // Query the `users` collection for the document with the matching email
+      QuerySnapshot userQuery = await _firestore
+          .collection("users")
+          .where("email", isEqualTo: email)
+          .limit(1)
+          .get();
 
-        if (snapshot.docs.isNotEmpty) {
-          // Get the document ID of the matching user
-          String docId = snapshot.docs.first.id;
-
-          // Prepare the update data
-          Map<String, dynamic> updateData = {};
-
-          if (newName != null && newName.isNotEmpty) {
-            updateData['name'] = newName;
-          }
-
-          if (newPassword != null && newPassword.isNotEmpty) {
-            updateData['password'] = newPassword;
-          }
-
-          if (updateData.isNotEmpty) {
-            // Update the user document in Firestore
-            await _firestore.collection("users").doc(docId).update(updateData);
-
-            // Optionally update the Firebase Auth display name
-            if (newName != null && newName.isNotEmpty) {
-              await user.updateDisplayName(newName);
-            }
-
-            // Optionally update the Firebase Auth password
-            if (newPassword != null && newPassword.isNotEmpty) {
-              await user.updatePassword(newPassword);
-            }
-
-            // Reload the user data to reflect changes
-            await user.reload();
-          }
-        } else {
-          debugPrint("No matching user document found for email: $email");
-          throw Exception("User not found in Firestore.");
-        }
-      } on FirebaseAuthException catch (e) {
-        debugPrint("Error updating user details: ${e.message}");
-        rethrow;
-      } catch (e) {
-        debugPrint("General error: $e");
-        rethrow;
+      if (userQuery.docs.isEmpty) {
+        throw Exception("Không tìm thấy tài liệu người dùng.");
       }
+
+      // Query the `customers` collection for the document with the matching cusEmail
+      QuerySnapshot customerQuery = await _firestore
+          .collection("customers")
+          .where("cusEmail", isEqualTo: email)
+          .limit(1)
+          .get();
+
+      if (customerQuery.docs.isEmpty) {
+        throw Exception("Không tìm thấy tài liệu khách hàng.");
+      }
+
+      // Extract document references
+      DocumentReference userDocRef = userQuery.docs.first.reference;
+      DocumentReference customerDocRef = customerQuery.docs.first.reference;
+
+      // Prepare the update data for users collection
+      Map<String, dynamic> userUpdateData = {};
+      if (newName != null && newName.isNotEmpty) {
+        userUpdateData['name'] = newName;
+      }
+      if (newPassword != null && newPassword.isNotEmpty) {
+        userUpdateData['password'] = newPassword;
+      }
+
+      // Prepare the update data for customers collection
+      Map<String, dynamic> customerUpdateData = {};
+      if (newName != null && newName.isNotEmpty) {
+        customerUpdateData['cusName'] = newName;
+      }
+      if (newAddress != null && newAddress.isNotEmpty) {
+        customerUpdateData['cusAddress'] = newAddress;
+      }
+      if (newPhone != null && newPhone.isNotEmpty) {
+        customerUpdateData['cusPhone'] = newPhone;
+      }
+      if (newDateOfBirth != null) {
+        customerUpdateData['cusDateOfBirth'] =
+            Timestamp.fromDate(newDateOfBirth);
+      }
+      if (newGender != null && newGender.isNotEmpty) {
+        customerUpdateData['cusGender'] = newGender;
+      }
+
+      // Update both collections
+      if (userUpdateData.isNotEmpty) {
+        await userDocRef.update(userUpdateData);
+      }
+
+      if (customerUpdateData.isNotEmpty) {
+        await customerDocRef.update(customerUpdateData);
+      }
+
+      // Optionally update the Firebase Auth password and name
+      if (newPassword != null && newPassword.isNotEmpty) {
+        await user.updatePassword(newPassword);
+      }
+      if (newName != null && newName.isNotEmpty) {
+        await user.updateDisplayName(newName);
+      }
+    } catch (e) {
+      debugPrint("Error updating user details: $e");
+      throw Exception("Failed to update user details.");
     }
   }
 
@@ -221,5 +258,60 @@ class AuthController {
 
     debugPrint("No authenticated user found.");
     return null; // Return null if no user is logged in
+  }
+
+  Future<Map<String, dynamic>> getUserData() async {
+    User? user = _auth.currentUser; // Get the currently authenticated user
+    if (user == null) {
+      throw Exception("No authenticated user found.");
+    }
+
+    String email = user.email ?? "";
+    if (email.isEmpty) {
+      throw Exception("User email not available.");
+    }
+
+    try {
+      // Get data from the 'users' collection
+      QuerySnapshot usersSnapshot = await _firestore
+          .collection("users")
+          .where("email", isEqualTo: email)
+          .get();
+
+      if (usersSnapshot.docs.isEmpty) {
+        throw Exception("User not found in 'users' collection.");
+      }
+
+      // Get data from the 'customers' collection
+      QuerySnapshot customersSnapshot = await _firestore
+          .collection("customers")
+          .where("cusEmail", isEqualTo: email)
+          .get();
+
+      if (customersSnapshot.docs.isEmpty) {
+        throw Exception("User not found in 'customers' collection.");
+      }
+
+      // Assuming both collections contain one matching document each
+      var userData = usersSnapshot.docs.first.data() as Map<String, dynamic>;
+      var customerData =
+          customersSnapshot.docs.first.data() as Map<String, dynamic>;
+
+      // Merge user data from both collections
+      return {
+        'name': userData['name'],
+        'email': userData['email'],
+        'password': userData['password'],
+        'address': customerData['cusAddress'],
+        'phone': customerData['cusPhone'],
+        'dateOfBirth': customerData['cusDateOfBirth']
+            .toDate(), // assuming it's a timestamp
+        'gender': customerData['cusGender'],
+        'loyaltyPoints': customerData['cusLoyaltyPoints'],
+      };
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
+      throw Exception("Failed to fetch user data.");
+    }
   }
 }
