@@ -143,7 +143,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                     itemCount: _filteredOrders.length,
                     itemBuilder: (context, index) {
                       final order = _filteredOrders[index];
-                      final isProcessing = order['orderStatus'] == 'Đang xử lý';
 
                       return Card(
                         color: Colors.white,
@@ -232,32 +231,6 @@ class _OrdersScreenState extends State<OrdersScreen>
           content: Text('Hủy đơn hàng thất bại: $e'),
         ));
       }
-    }
-  }
-
-  // Method to confirm deletion
-  Future<void> _confirmDeleteOrder(String orderId) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text('Are you sure you want to delete this order?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldDelete == true) {
-      await _orderController.deleteOrder(orderId);
-      _loadOrders(); // Refresh the orders after deletion
     }
   }
 

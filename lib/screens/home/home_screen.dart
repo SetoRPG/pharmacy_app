@@ -1,11 +1,14 @@
 // ignore_for_file: unused_element, use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
+import 'package:pharmacy_app/screens/auth/login_screen.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
@@ -122,6 +125,30 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<String?> _getUserName() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return null;
+    }
+
+    final userEmail = currentUser.email;
+    if (userEmail == null) {
+      return null;
+    }
+
+    // Fetch the user's name from Firestore
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: userEmail)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first.data()['name'] as String?;
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,7 +166,98 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.only(left: 0, right: 0),
               child: ListView(
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
+                  // New section
+                  FutureBuilder(
+                    future: _getUserName(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        // Show login button if no user is logged in
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.login,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'ĐĂNG NHẬP',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF20B6E8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        );
+                      } else {
+                        // Show welcoming greeting if user is logged in
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.waving_hand,
+                                  color: Color(0xFF16B2A5), size: 24),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Xin chào, ',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const BaseFrame(
+                                        passedIndex:
+                                            3, // Navigate to Account tab
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  '${snapshot.data}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF16B2A5),
+                                  ),
+                                ),
+                              ),
+                              const Text(
+                                ' !',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 20),
                   _buildPromotionsSection(),
                   const SizedBox(height: 50),
                   Padding(
@@ -292,7 +410,17 @@ class _HomeScreenState extends State<HomeScreen> {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    _showProductBottomSheet(context, medicine);
+                    if (FirebaseAuth.instance.currentUser == null) {
+                      // Navigate to LoginPage if user is not authenticated
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    } else {
+                      _showProductBottomSheet(context, medicine);
+                    }
                   }, // Nút nhãn
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white, // Màu chữ

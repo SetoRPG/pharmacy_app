@@ -209,8 +209,6 @@ class _BasketPageState extends State<BasketPage> {
                               .replaceAll(RegExp(r'\s+'), '') ??
                           '');
 
-                      String? imageUrl = _imageCache[item['medId']];
-
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(

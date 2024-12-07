@@ -282,9 +282,6 @@ class _MyWidgetState extends State<LoginScreen> {
           .get();
 
       if (userQuery.docs.isNotEmpty) {
-        final userDoc = userQuery.docs.first;
-        final String password = userDoc['password'];
-
         // Use Firebase Functions or another email-sending service here
         await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

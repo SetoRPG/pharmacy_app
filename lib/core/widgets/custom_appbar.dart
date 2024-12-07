@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
+import 'package:pharmacy_app/screens/auth/login_screen.dart';
 import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 import 'package:pharmacy_app/screens/home/search_results.dart';
 
@@ -84,12 +86,23 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.shopping_cart, color: Colors.white),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const BasketPage(),
-              ),
-            );
+            if (FirebaseAuth.instance.currentUser == null) {
+              // Navigate to LoginPage if user is not authenticated
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginScreen(),
+                ),
+              );
+            } else {
+              // Navigate to BasketPage if user is authenticated
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BasketPage(),
+                ),
+              );
+            }
           },
         ),
       ],

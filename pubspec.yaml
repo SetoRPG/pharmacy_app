@@ -43,9 +43,10 @@ dependencies:
   smooth_page_indicator: ^1.2.0+3
   google_fonts: ^5.0.0
   lottie:
-  flutter_map: ^5.0.0
-  latlong2: ^0.9.1
-  geocoding: ^2.0.4
+  google_maps_flutter: ^2.2.3
+  location: ^5.0.0
+  geocoding: ^2.0.0
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

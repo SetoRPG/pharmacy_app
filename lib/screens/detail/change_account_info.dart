@@ -90,7 +90,10 @@ class _ChangeAccountDetailsScreenState
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(
+                  color: Color(0xFF16B2A5),
+                ))
               : SingleChildScrollView(
                   child: Column(
                     children: [

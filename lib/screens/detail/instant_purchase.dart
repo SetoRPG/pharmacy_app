@@ -1,19 +1,11 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
-import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
+import 'package:pharmacy_app/screens/detail/google_map.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:geocoding/geocoding.dart';
-
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class PaymentPage extends StatefulWidget {
   final List<Map<String, dynamic>> items;
@@ -42,54 +34,6 @@ class _PaymentPageState extends State<PaymentPage> {
   String selectedPromoCode = ''; // Mã khuyến mãi đã chọn
   String note = ''; // Ghi chú của người dùng
   String selectedPaymentMethod = 'COD'; // Phương thức thanh toán đã chọn
-
-  Future<void> _getSuggestions(String input) async {
-    if (input.isEmpty) return;
-
-    try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=$input&format=json&limit=1',
-      );
-
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data.isNotEmpty) {
-          setState(() {
-            selectedLat = double.parse(data[0]['lat']);
-            selectedLng = double.parse(data[0]['lon']);
-          });
-        } else {
-          print("No results found for the input.");
-        }
-      } else {
-        print("Failed to fetch suggestions: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error fetching suggestions: $e");
-    }
-  }
-
-  void _showMap() {
-    if (selectedLat != null && selectedLng != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MapView(
-            latitude: selectedLat!,
-            longitude: selectedLng!,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Hãy nhập địa chỉ đúng.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
 
   @override
   void initState() {
@@ -202,13 +146,33 @@ class _PaymentPageState extends State<PaymentPage> {
                 const SizedBox(
                   width: 15,
                 ),
+                // Update the onTap method for the 'Địa chỉ' TextField in PaymentPage
+                // Inside the 'Địa chỉ' TextField in PaymentPage
                 Expanded(
                   child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        location = value;
-                      });
-                      _getSuggestions(value);
+                    controller: TextEditingController(
+                        text: location), // Set the location text from state
+                    onTap: () async {
+                      // Use await to wait for the result from GoogleMapPage
+                      final address = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GoogleMapPage(
+                            onFinish: (selectedAddress) {
+                              setState(() {
+                                location =
+                                    selectedAddress; // Update the location state
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                      if (address != null && address.isNotEmpty) {
+                        setState(() {
+                          location =
+                              address; // Update location when finish button is pressed
+                        });
+                      }
                     },
                     cursorColor: Colors.teal,
                     decoration: const InputDecoration(
@@ -222,14 +186,6 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                     maxLines: 1,
                   ),
-                ),
-                const SizedBox(width: 5),
-                IconButton(
-                  icon: const Icon(
-                    Icons.location_pin,
-                    color: Colors.red,
-                  ),
-                  onPressed: _showMap,
                 ),
               ],
             ),
@@ -455,64 +411,6 @@ class _PaymentPageState extends State<PaymentPage> {
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               color: isBold ? Colors.red : Colors.black,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MapView extends StatelessWidget {
-  final double latitude;
-  final double longitude;
-
-  const MapView({super.key, required this.latitude, required this.longitude});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 10,
-        shadowColor: Colors.black,
-        title: const CustomText(text: 'BẢN ĐỒ', size: 20),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF20B6E8), Color(0xFF16B2A5)],
-            ),
-          ),
-        ),
-      ),
-      body: FlutterMap(
-        options: MapOptions(
-          center: LatLng(latitude, longitude),
-          zoom: 15.0,
-        ),
-        children: [
-          TileLayer(
-            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            subdomains: const ['a', 'b', 'c'],
-          ),
-          MarkerLayer(
-            markers: [
-              Marker(
-                point: LatLng(latitude, longitude),
-                builder: (ctx) => const Icon(
-                  Icons.location_on,
-                  color: Colors.red,
-                  size: 40,
-                ),
-              ),
-            ],
           ),
         ],
       ),

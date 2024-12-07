@@ -1,10 +1,12 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
+import 'package:pharmacy_app/screens/auth/login_screen.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
@@ -207,7 +209,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
         trailing: IconButton(
           icon: const Icon(Icons.add_shopping_cart),
           onPressed: () {
-            _showProductBottomSheet(context, product);
+            if (FirebaseAuth.instance.currentUser == null) {
+              // Navigate to LoginPage if user is not authenticated
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginScreen(),
+                ),
+              );
+            } else {
+              _showProductBottomSheet(context, product);
+            }
           },
         ),
       ),

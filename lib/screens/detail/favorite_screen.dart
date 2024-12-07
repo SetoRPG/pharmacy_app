@@ -2,10 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
-import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 
 class FavoriteProductsScreen extends StatefulWidget {

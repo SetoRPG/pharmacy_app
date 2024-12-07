@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
+import 'package:pharmacy_app/screens/auth/login_screen.dart';
 import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/home/base_frame.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -219,14 +220,28 @@ class _ChiTietSpState extends State<ChiTietSp> {
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(
-                                  isFavorite
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: isFavorite ? Colors.pink : Colors.grey,
-                                ),
-                                onPressed: _toggleFavorite,
-                              ),
+                                  icon: Icon(
+                                    isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color:
+                                        isFavorite ? Colors.pink : Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    if (FirebaseAuth.instance.currentUser ==
+                                        null) {
+                                      // Navigate to LoginPage if user is not authenticated
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const LoginScreen(),
+                                        ),
+                                      );
+                                    } else {
+                                      _toggleFavorite;
+                                    }
+                                  }),
                             ],
                           ),
                         ),
@@ -332,12 +347,25 @@ class _ChiTietSpState extends State<ChiTietSp> {
                     padding: const EdgeInsets.all(16.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        _showProductBottomSheet(context, medicineDetails!);
+                        if (FirebaseAuth.instance.currentUser == null) {
+                          // Navigate to LoginPage if user is not authenticated
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
+                        } else {
+                          _showProductBottomSheet(context, medicineDetails!);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         backgroundColor: const Color(0xFF20B6E8), //
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: const Text(
                         'MUA THUỐC',
