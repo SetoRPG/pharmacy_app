@@ -30,7 +30,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
       setState(() {
         _completedOrders = orders
             .where((order) =>
-                order['status'] == 'Đã Kết Toán') // Filter completed orders
+                order['status'] == 'Đã Giao Hàng') // Filter completed orders
             .toList();
         _isLoading = false;
       });

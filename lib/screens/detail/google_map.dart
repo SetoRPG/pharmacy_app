@@ -40,7 +40,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     }
 
     final String url =
-        'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=5';
+        'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=5&countrycodes=VN';
 
     try {
       final response = await http.get(Uri.parse(url));

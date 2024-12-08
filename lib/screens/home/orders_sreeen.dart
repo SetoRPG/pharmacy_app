@@ -32,8 +32,8 @@ class _OrdersScreenState extends State<OrdersScreen>
   final List<String> _statusTabs = [
     'Đang Chờ Xử Lý', // PENDING
     'Đã Xác Nhận', // CONFIRMED
-    'Đã Giao Hàng', // SHIPPED
-    'Đã Kết Toán', // COMPLETED
+    'Đang Giao', // SHIPPED
+    'Đã Giao Hàng', // COMPLETED
     'Đã Hủy', // CANCELLED
   ];
 
@@ -240,8 +240,8 @@ class _OrdersScreenState extends State<OrdersScreen>
     List<String> progressStages = [
       'Đang Chờ Xử Lý', // PENDING
       'Đã Xác Nhận', // CONFIRMED
-      'Đã Giao Hàng', // SHIPPED
-      'Đã Kết Toán', // COMPLETED
+      'Đang Giao', // SHIPPED
+      'Đã Giao Hàng', // COMPLETED
     ];
 
     // Define the color to apply based on the status

@@ -78,13 +78,13 @@ class OrderController {
             statusText = 'Đã Xác Nhận'; // Confirmed
             break;
           case 'SHIPPED':
-            statusText = 'Đã Giao Hàng'; // Shipped
+            statusText = 'Đang Giao'; // Shipped
             break;
           case 'CANCELLED':
             statusText = 'Đã Hủy'; // Cancelled
             break;
           case 'COMPLETED':
-            statusText = 'Đã Kết Toán'; // Completed
+            statusText = 'Đã Giao Hàng'; // Completed
             break;
           default:
             statusText = 'Trạng Thái Không Xác Định'; // Undefined status
