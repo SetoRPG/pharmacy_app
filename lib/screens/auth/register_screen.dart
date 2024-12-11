@@ -140,7 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
         const SizedBox(height: 32),
-        _registerButton(context, "Đăng Ký", _registerUser),
+        _registerButton(context, "Đăng Ký", _promptReenterPassword),
       ],
     );
   }
@@ -202,6 +202,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
             "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
       });
     }
+  }
+
+  void _promptReenterPassword() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final TextEditingController reenterPasswordController =
+            TextEditingController();
+
+        return AlertDialog(
+          title: const Text("Xác Nhận Mật Khẩu"),
+          content: TextField(
+            controller: reenterPasswordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: "Nhập lại mật khẩu",
+              prefixIcon: Icon(Icons.lock),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Hủy"),
+            ),
+            TextButton(
+              onPressed: () {
+                if (reenterPasswordController.text.trim() !=
+                    _passwordController.text.trim()) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Mật khẩu không khớp."),
+                    ),
+                  );
+                } else {
+                  Navigator.pop(context);
+                  _registerUser();
+                }
+              },
+              child: const Text("Xong"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _registerUser() {

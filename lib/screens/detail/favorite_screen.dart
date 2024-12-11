@@ -133,6 +133,7 @@ class _FavoriteProductsScreenState extends State<FavoriteProductsScreen> {
         ),
       ), // Navigate to detail page on tap
       child: Card(
+        color: Colors.white,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.black,
         elevation: 4,

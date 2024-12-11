@@ -343,9 +343,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       Text('$quantity'), // Display current quantity
                       IconButton(
                         onPressed: () {
-                          setState(() {
-                            quantity++;
-                          });
+                          if (quantity < product['medStockQuantity']) {
+                            setState(() {
+                              quantity++;
+                            });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Vượt quá số lượng tồn kho'),
+                              ),
+                            );
+                          }
                         },
                         icon: const Icon(Icons.add),
                       ),

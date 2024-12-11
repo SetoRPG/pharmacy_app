@@ -217,6 +217,11 @@ class _BasketPageState extends State<BasketPage> {
                                   builder: (context) =>
                                       ChiTietSp(medicineId: medId)));
                         },
+                        onLongPress: () {
+                          setState(() {
+                            _selectedItems.add(medId);
+                          });
+                        },
                         child: Card(
                           color: Colors.white,
                           surfaceTintColor: Colors.white,
@@ -359,8 +364,21 @@ class _BasketPageState extends State<BasketPage> {
                                               IconButton(
                                                 icon: const Icon(Icons.add),
                                                 onPressed: () {
-                                                  _updateQuantity(
-                                                      medId, quantity + 1);
+                                                  if (quantity <
+                                                      medicine[
+                                                          'medStockQuantity']) {
+                                                    _updateQuantity(
+                                                        medId, quantity + 1);
+                                                  } else {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                            'Vượt quá số lượng tồn kho'),
+                                                      ),
+                                                    );
+                                                  }
                                                 },
                                               ),
                                             ],

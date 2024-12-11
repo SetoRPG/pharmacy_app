@@ -66,34 +66,37 @@ class _ChiTietSpState extends State<ChiTietSp> {
   }
 
   Future<void> _toggleFavorite() async {
-    if (userEmail == null) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userEmail = user.email;
 
-    final userQuery = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: userEmail)
-        .limit(1)
-        .get();
-
-    if (userQuery.docs.isNotEmpty) {
-      final userDoc = userQuery.docs.first;
-      final userData = userDoc.data();
-      final List<dynamic> favoriteList =
-          List<dynamic>.from(userData['favoriteList'] ?? []);
-
-      setState(() {
-        if (isFavorite) {
-          favoriteList.remove(widget.medicineId);
-          isFavorite = false;
-        } else {
-          favoriteList.add(widget.medicineId);
-          isFavorite = true;
-        }
-      });
-
-      await FirebaseFirestore.instance
+      final userQuery = await FirebaseFirestore.instance
           .collection('users')
-          .doc(userDoc.id)
-          .update({'favoriteList': favoriteList});
+          .where('email', isEqualTo: userEmail)
+          .limit(1)
+          .get();
+
+      if (userQuery.docs.isNotEmpty) {
+        final userDoc = userQuery.docs.first;
+        final userData = userDoc.data();
+        final List<dynamic> favoriteList =
+            List<dynamic>.from(userData['favoriteList'] ?? []);
+
+        setState(() {
+          if (isFavorite) {
+            favoriteList.remove(widget.medicineId);
+            isFavorite = false;
+          } else {
+            favoriteList.add(widget.medicineId);
+            isFavorite = true;
+          }
+        });
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userDoc.id)
+            .update({'favoriteList': favoriteList});
+      }
     }
   }
 
@@ -124,7 +127,8 @@ class _ChiTietSpState extends State<ChiTietSp> {
         logo: Icons.info,
       ),
       body: medicineDetails == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF16B2A5)))
           : Stack(
               children: [
                 SingleChildScrollView(
@@ -239,7 +243,7 @@ class _ChiTietSpState extends State<ChiTietSp> {
                                         ),
                                       );
                                     } else {
-                                      _toggleFavorite;
+                                      _toggleFavorite();
                                     }
                                   }),
                             ],
@@ -559,9 +563,17 @@ class _ChiTietSpState extends State<ChiTietSp> {
                       Text('$quantity'), // Display current quantity
                       IconButton(
                         onPressed: () {
-                          setState(() {
-                            quantity++;
-                          });
+                          if (quantity < product['medStockQuantity']) {
+                            setState(() {
+                              quantity++;
+                            });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Vượt quá số lượng tồn kho'),
+                              ),
+                            );
+                          }
                         },
                         icon: const Icon(Icons.add),
                       ),

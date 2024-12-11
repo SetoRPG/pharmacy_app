@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
@@ -105,13 +107,6 @@ class _ChangeAccountDetailsScreenState
                       ),
                       const SizedBox(height: 16),
                       CustomTextField(
-                        controller: _newPasswordController,
-                        hintText: 'Mật khẩu',
-                        prefixIcon: Icons.lock,
-                        obscureText: true,
-                      ),
-                      const SizedBox(height: 16),
-                      CustomTextField(
                         controller: _newAddressController,
                         hintText: 'Địa chỉ',
                         prefixIcon: Icons.home,
@@ -151,6 +146,45 @@ class _ChangeAccountDetailsScreenState
                       ),
                       const SizedBox(height: 32),
                       _updateButton(context, "Cập Nhật", _updateAccountDetails),
+                      const SizedBox(height: 16),
+                      _updateButton(context, "Đổi Mật Khẩu", () async {
+                        try {
+                          final currentUser = FirebaseAuth.instance.currentUser;
+                          if (currentUser == null) {
+                            return;
+                          }
+
+                          final email = currentUser.email;
+                          if (email == null) {
+                            return;
+                          }
+                          // Query the `users` collection to find the user by email
+                          QuerySnapshot userQuery = await FirebaseFirestore
+                              .instance
+                              .collection('users')
+                              .where('email', isEqualTo: email)
+                              .limit(1)
+                              .get();
+
+                          if (userQuery.docs.isNotEmpty) {
+                            // Use Firebase Functions or another email-sending service here
+                            await FirebaseAuth.instance
+                                .sendPasswordResetEmail(email: email);
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text(
+                                  "Yêu cầu đặt lại mặt khẩu đã được gửi đến email của bạn."),
+                            ));
+                          } else {
+                            throw Exception(
+                                "Không tìm thấy người dùng với email này.");
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Lỗi khi gửi email: $e"),
+                          ));
+                        }
+                      })
                     ],
                   ),
                 ),
@@ -223,7 +257,7 @@ class _ChangeAccountDetailsScreenState
     try {
       await _authController.updateUserDetails(
         newName: _newNameController.text.trim(),
-        newPassword: _newPasswordController.text.trim(),
+        newPassword: null,
         newAddress: _newAddressController.text.trim(),
         newPhone: _newPhoneController.text.trim(),
         newDateOfBirth: _newDateOfBirth,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -15,11 +16,13 @@ class GoogleMapPage extends StatefulWidget {
 
 class _GoogleMapPageState extends State<GoogleMapPage> {
   late GoogleMapController _mapController;
-  LatLng _currentLocation = LatLng(10.8231, 106.6297); // Ho Chi Minh City
+  final LatLng _currentLocation =
+      const LatLng(10.8231, 106.6297); // Ho Chi Minh City
   final TextEditingController _addressController = TextEditingController();
   final Set<Marker> _markers = {};
   List<dynamic> _suggestions = []; // To hold the search suggestions
   final FocusNode _focusNode = FocusNode(); // FocusNode for TextField
+  Timer? _debounce; // Timer for debounce
 
   @override
   void initState() {
@@ -30,30 +33,36 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     });
   }
 
-  // Fetch geocoding results as the user types
+  // Updated fetch suggestions function with debounce
   Future<void> _getSuggestions(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _suggestions.clear();
-      });
-      return;
+    if (_debounce?.isActive ?? false) {
+      _debounce?.cancel();
     }
 
-    final String url =
-        'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=5&countrycodes=VN';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-
+    _debounce = Timer(const Duration(milliseconds: 200), () async {
+      if (query.isEmpty) {
         setState(() {
-          _suggestions = data;
+          _suggestions.clear();
         });
+        return;
       }
-    } catch (e) {
-      print('Error fetching suggestions: $e');
-    }
+
+      final String url =
+          'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=5&countrycodes=VN';
+
+      try {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body);
+
+          setState(() {
+            _suggestions = data;
+          });
+        }
+      } catch (e) {
+        print('Error fetching suggestions: $e');
+      }
+    });
   }
 
   // Get coordinates from the selected address
@@ -74,7 +83,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           Marker(
             markerId: const MarkerId('receiver_address'),
             position: destination,
-            infoWindow: InfoWindow(title: 'Địa chỉ nhận hàng'),
+            infoWindow: const InfoWindow(title: 'Địa chỉ nhận hàng'),
           ),
         );
       });
@@ -88,6 +97,14 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         const SnackBar(content: Text('Không tìm thấy địa chỉ')),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel(); // Cancel debounce timer when disposing
+    _addressController.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -116,13 +133,13 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
             },
             style: TextButton.styleFrom(
               backgroundColor: Colors.transparent, // Green background
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8), // Rounded corners
               ),
             ),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Text(
                   'Xác Nhận',
                   style: TextStyle(
@@ -162,8 +179,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
               _mapController = controller;
             },
             markers: _markers,
-            myLocationEnabled: false, // Disable the current location marker
-            myLocationButtonEnabled: false, // Disable the "My Location" button
+            myLocationEnabled: false,
+            myLocationButtonEnabled: false,
           ),
           Positioned(
             top: 20,
@@ -181,8 +198,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                           child: TextField(
                             cursorColor: Colors.teal,
                             controller: _addressController,
-                            focusNode:
-                                _focusNode, // Auto-focus on the text field
+                            focusNode: _focusNode,
                             decoration: const InputDecoration(
                               labelText: 'Nhập địa chỉ',
                               floatingLabelStyle: TextStyle(color: Colors.teal),
@@ -194,62 +210,60 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                                   vertical: 8, horizontal: 12),
                             ),
                             onChanged: (text) {
-                              _getSuggestions(
-                                  text); // Fetch suggestions as user types
+                              _getSuggestions(text);
                             },
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Clear button to clear the text field
                         IconButton(
                           icon: const Icon(
                             Icons.clear,
-                            color: Colors.red, // Color of the clear icon
+                            color: Colors.red,
                           ),
                           onPressed: () {
-                            _addressController.clear(); // Clears the text field
+                            _addressController.clear();
                             setState(() {
-                              _suggestions
-                                  .clear(); // Clear the suggestions as well
+                              _suggestions.clear();
                             });
                           },
                         ),
                       ],
                     ),
-                    if (_suggestions.isNotEmpty)
-                      Container(
-                        // Set a maximum height to prevent overflowing
-                        constraints: BoxConstraints(maxHeight: 200),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap:
-                              true, // Allows the ListView to take only as much space as needed
-                          itemCount: _suggestions.length,
-                          itemBuilder: (context, index) {
-                            final suggestion = _suggestions[index];
-                            return Column(
-                              children: [
-                                ListTile(
-                                  title: Text(suggestion['display_name']),
-                                  onTap: () {
-                                    _getCoordinatesFromAddress(
-                                        suggestion['display_name']);
-                                    setState(() {
-                                      _suggestions
-                                          .clear(); // Clear suggestions after selection
-                                    });
-                                  },
-                                ),
-                                // Add Divider only if it's not the last item
-                                if (index != _suggestions.length - 1) Divider(),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _suggestions.isNotEmpty
+                          ? Container(
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: _suggestions.length,
+                                itemBuilder: (context, index) {
+                                  final suggestion = _suggestions[index];
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(suggestion['display_name']),
+                                        onTap: () {
+                                          _getCoordinatesFromAddress(
+                                              suggestion['display_name']);
+                                          setState(() {
+                                            _suggestions.clear();
+                                          });
+                                        },
+                                      ),
+                                      if (index != _suggestions.length - 1)
+                                        const Divider(),
+                                    ],
+                                  );
+                                },
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
                   ],
                 ),
               ),

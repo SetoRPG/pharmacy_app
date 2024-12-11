@@ -24,6 +24,7 @@ class PaymentPage extends StatefulWidget {
 class _PaymentPageState extends State<PaymentPage> {
   final formatter = NumberFormat.decimalPattern();
   String location = ''; // Stores the user's address input
+  String specificLocation = '';
   double? selectedLat;
   double? selectedLng;
   final OrderController _orderController =
@@ -176,7 +177,43 @@ class _PaymentPageState extends State<PaymentPage> {
                     },
                     cursorColor: Colors.teal,
                     decoration: const InputDecoration(
-                      hintText: 'Nhập địa chỉ giao hàng',
+                      hintText: 'Đường, phường, quận, TP,...',
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.teal),
+                      ),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    ),
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                const Text(
+                  'Địa chỉ cụ thể:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(
+                  width: 15,
+                ),
+                Expanded(
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        specificLocation = value;
+                      });
+                    },
+                    cursorColor: Colors.teal,
+                    decoration: const InputDecoration(
+                      hintText: 'Số nhà, số phòng,...',
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.teal),
@@ -331,20 +368,20 @@ class _PaymentPageState extends State<PaymentPage> {
             const SizedBox(height: 16),
 
             // Mã khuyến mãi (di chuyển xuống dưới)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Mã khuyến mãi'),
-                TextButton(
-                  onPressed:
-                      showPromoCodeBottomSheet, // Mở danh sách mã khuyến mãi
-                  child: Text(
-                    selectedPromoCode.isEmpty ? 'Chọn mã' : selectedPromoCode,
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     const Text('Mã khuyến mãi'),
+            //     TextButton(
+            //       onPressed:
+            //           showPromoCodeBottomSheet, // Mở danh sách mã khuyến mãi
+            //       child: Text(
+            //         selectedPromoCode.isEmpty ? 'Chọn mã' : selectedPromoCode,
+            //         style: const TextStyle(color: Colors.blue),
+            //       ),
+            //     ),
+            //   ],
+            // ),
 
             const SizedBox(height: 16),
 
@@ -353,11 +390,13 @@ class _PaymentPageState extends State<PaymentPage> {
               child: ElevatedButton(
                 onPressed: () async {
                   try {
+                    String combinedLocation =
+                        '$specificLocation, $location'.trim();
                     // Call the createOrder function from the controller
                     await _orderController.createOrderWithMultipleItems(
                       items: widget.items,
                       note: note, // Optional note
-                      location: location,
+                      location: combinedLocation,
                     );
 
                     Navigator.push(
@@ -382,6 +421,9 @@ class _PaymentPageState extends State<PaymentPage> {
                   backgroundColor: const Color(0xFF20B6E8), //
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: const Text('ĐẶT HÀNG'),
               ),

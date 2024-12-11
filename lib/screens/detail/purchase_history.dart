@@ -61,7 +61,10 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => OrderDetailScreen(order: order),
+        builder: (context) => OrderDetailScreen(
+          order: order,
+          showRebuyButton: true,
+        ),
       ),
     );
   }
@@ -125,6 +128,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
 
   Widget _buildHistoryCard(Map<String, dynamic> order) {
     return Card(
+      color: Colors.white,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.black,
       elevation: 4,
