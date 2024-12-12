@@ -35,6 +35,7 @@ class _PaymentPageState extends State<PaymentPage> {
   String selectedPromoCode = ''; // Mã khuyến mãi đã chọn
   String note = ''; // Ghi chú của người dùng
   String selectedPaymentMethod = 'COD'; // Phương thức thanh toán đã chọn
+  final FocusNode specificLocationFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -206,6 +207,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 ),
                 Expanded(
                   child: TextField(
+                    focusNode: specificLocationFocusNode,
                     onChanged: (value) {
                       setState(() {
                         specificLocation = value;
@@ -389,32 +391,50 @@ class _PaymentPageState extends State<PaymentPage> {
             Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  try {
-                    String combinedLocation =
-                        '$specificLocation, $location'.trim();
-                    // Call the createOrder function from the controller
-                    await _orderController.createOrderWithMultipleItems(
-                      items: widget.items,
-                      note: note, // Optional note
-                      location: combinedLocation,
-                    );
-
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const BaseFrame(
-                                  passedIndex: 2,
-                                )));
-
+                  if (location.isEmpty) {
+                    // Show snackbar if Địa chỉ is empty
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đặt hàng thành công!')),
+                      const SnackBar(content: Text('Xin hãy nhập địa chỉ')),
                     );
-                  } catch (e) {
-                    // Show error message if something goes wrong
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Đặt hàng thất bại: $e')),
-                    );
+                    return;
                   }
+
+                  if (specificLocation.isEmpty) {
+                    // Show dialog if Địa chỉ cụ thể is empty
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Nhập địa chỉ cụ thể?'),
+                          content: const Text('VD: Số phòng khách sạn'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context); // Close the dialog
+                                Future.delayed(
+                                    const Duration(milliseconds: 100), () {
+                                  specificLocationFocusNode
+                                      .requestFocus(); // Focus on Địa chỉ cụ thể
+                                });
+                              },
+                              child: const Text('Có'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context); // Close the dialog
+                                _proceedOrder(); // Proceed to the original function
+                              },
+                              child: const Text('Không'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    return;
+                  }
+
+                  // Proceed with the original function if all validations pass
+                  _proceedOrder();
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 13),
@@ -432,6 +452,36 @@ class _PaymentPageState extends State<PaymentPage> {
         ),
       ),
     );
+  }
+
+  void _proceedOrder() async {
+    try {
+      String combinedLocation = '$specificLocation, $location'.trim();
+      // Call the createOrder function from the controller
+      await _orderController.createOrderWithMultipleItems(
+        items: widget.items,
+        note: note, // Optional note
+        location: combinedLocation,
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const BaseFrame(
+            passedIndex: 2,
+          ),
+        ),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đặt hàng thành công!')),
+      );
+    } catch (e) {
+      // Show error message if something goes wrong
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đặt hàng thất bại: $e')),
+      );
+    }
   }
 
   // Hàm tiện ích để tạo hàng chi tiết thanh toán
