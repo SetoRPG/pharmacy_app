@@ -1,9 +1,10 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/detail/chi_tiet_hoa_%C4%91%C6%A1n.dart';
-import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 
 class PurchaseHistoryScreen extends StatefulWidget {
   const PurchaseHistoryScreen({super.key});
@@ -44,18 +45,18 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     }
   }
 
-  void _rePurchase(Map<String, dynamic> order) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentPage(
-          items: order['items'], // Pass the order items
-          totalPrice: double.tryParse(order['total'] ?? '0') ??
-              0.0, // Pass the total price
-        ),
-      ),
-    );
-  }
+  // void _rePurchase(Map<String, dynamic> order) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => PaymentPage(
+  //         items: order['items'], // Pass the order items
+  //         totalPrice: double.tryParse(order['total'] ?? '0') ??
+  //             0.0, // Pass the total price
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _viewOrder(Map<String, dynamic> order) {
     Navigator.push(
@@ -149,22 +150,22 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                 'Tổng tiền: ${formatter.format(double.parse(order['total']))} đ'),
             const SizedBox(height: 12),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () => _rePurchase(order),
-                  icon: const Icon(
-                    Icons.shopping_cart,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Mua Lại',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF16B2A5),
-                  ),
-                ),
+                // ElevatedButton.icon(
+                //   onPressed: () => _rePurchase(order),
+                //   icon: const Icon(
+                //     Icons.shopping_cart,
+                //     color: Colors.white,
+                //   ),
+                //   label: const Text(
+                //     'Mua Lại',
+                //     style: TextStyle(color: Colors.white),
+                //   ),
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: const Color(0xFF16B2A5),
+                //   ),
+                // ),
                 OutlinedButton.icon(
                   onPressed: () => _viewOrder(order),
                   icon: const Icon(Icons.visibility),

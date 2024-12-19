@@ -8,7 +8,7 @@ import 'package:pharmacy_app/controllers/auth_controller.dart';
 import 'package:pharmacy_app/controllers/order_controller.dart';
 
 import 'package:pharmacy_app/core/widgets/custom_appbar.dart';
-import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
+import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 
 AuthController _authController = AuthController();
 OrderController _orderController = OrderController();
@@ -176,15 +176,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  void _rePurchase(Map<String, dynamic> order) {
+  void _rePurchase(Map<String, dynamic> order) async {
+    List<Map<String, dynamic>> items =
+        List<Map<String, dynamic>>.from(order['items']);
+
+    // Initialize a list to store product IDs
+    List<String> productIds = [];
+
+    // Iterate through each item and add it to the cart
+    for (var item in items) {
+      String productId = item['productId']
+          .replaceAll(RegExp(r'\s+'), ''); // Remove whitespace from productId
+      int quantity = item['quantity'];
+
+      // Add the product to the cart
+      await _orderController.addToCart(productId, quantity);
+
+      // Collect the product ID for navigation
+      productIds.add(productId);
+    }
+
+    // Navigate to the BasketPage and pass the product IDs
     Navigator.push(
+      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(
-        builder: (context) => PaymentPage(
-          items: order['items'], // Pass the order items
-          totalPrice: double.tryParse(order['total'] ?? '0') ??
-              0.0, // Pass the total price
-        ),
+        builder: (context) => BasketPage(productIds: productIds),
       ),
     );
   }

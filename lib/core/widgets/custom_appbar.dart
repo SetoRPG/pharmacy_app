@@ -1,14 +1,18 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pharmacy_app/controllers/medicine_controller.dart';
 import 'package:pharmacy_app/core/widgets/custom_text_1.dart';
 import 'package:pharmacy_app/screens/auth/login_screen.dart';
 import 'package:pharmacy_app/screens/detail/basket_screen.dart';
 import 'package:pharmacy_app/screens/home/search_results.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
   final IconData logo; // Allows you to change the logo
-  final bool showBackButton; // New parameter to control back button visibility
+  final bool showBackButton; // Controls back button visibility
 
   const CustomAppBar({
     super.key,
@@ -18,7 +22,69 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
+  State<CustomAppBar> createState() => _CustomAppBarState();
+
+  @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _CustomAppBarState extends State<CustomAppBar> {
+  final List<Map<String, dynamic>> _basketItems = [];
+  final MedicineController _medicineController = MedicineController();
+  bool _isLoading = true;
+  late StreamSubscription<QuerySnapshot> _basketSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToBasketChanges();
+  }
+
+  void _listenToBasketChanges() {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _basketSubscription = FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: user.email)
+          .snapshots()
+          .listen((snapshot) async {
+        if (snapshot.docs.isNotEmpty) {
+          DocumentSnapshot userDoc = snapshot.docs.first;
+          List<dynamic> basket = userDoc['basket'] ?? [];
+          List<Map<String, dynamic>> updatedBasketItems = [];
+
+          for (var item in basket) {
+            Map<String, dynamic>? medicine =
+                await _medicineController.getMedicineById(item['medId']);
+            if (medicine != null) {
+              updatedBasketItems.add({
+                'medicine': medicine,
+                'quantity': item['quantity'],
+              });
+            }
+          }
+
+          setState(() {
+            _basketItems
+              ..clear()
+              ..addAll(updatedBasketItems);
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _basketItems.clear();
+            _isLoading = false;
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _basketSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +104,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       automaticallyImplyLeading:
-          showBackButton, // Controls automatic back button
-      leading: showBackButton
+          widget.showBackButton, // Controls automatic back button
+      leading: widget.showBackButton
           ? IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
@@ -51,7 +117,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             Icon(
-              logo, // Use the dynamic logo here
+              widget.logo, // Use the dynamic logo here
               color: Colors.white,
               shadows: const [
                 Shadow(
@@ -67,7 +133,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
             const SizedBox(width: 10),
-            CustomText(text: title, size: 20),
+            CustomText(text: widget.title, size: 20),
           ],
         ),
       ),
@@ -83,27 +149,51 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             );
           },
         ),
-        IconButton(
-          icon: const Icon(Icons.shopping_cart, color: Colors.white),
-          onPressed: () {
-            if (FirebaseAuth.instance.currentUser == null) {
-              // Navigate to LoginPage if user is not authenticated
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginScreen(),
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.shopping_cart, color: Colors.white),
+              onPressed: () {
+                if (FirebaseAuth.instance.currentUser == null) {
+                  // Navigate to LoginPage if user is not authenticated
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                } else {
+                  // Navigate to BasketPage if user is authenticated
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BasketPage(),
+                    ),
+                  );
+                }
+              },
+            ),
+            if (!_isLoading && _basketItems.isNotEmpty)
+              Positioned(
+                right: 4,
+                top: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${_basketItems.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              );
-            } else {
-              // Navigate to BasketPage if user is authenticated
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const BasketPage(),
-                ),
-              );
-            }
-          },
+              ),
+          ],
         ),
       ],
     );

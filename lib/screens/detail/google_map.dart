@@ -60,7 +60,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           });
         }
       } catch (e) {
-        print('Error fetching suggestions: $e');
+        return;
       }
     });
   }

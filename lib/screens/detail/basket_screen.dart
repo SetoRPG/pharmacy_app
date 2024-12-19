@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, avoid_types_as_parameter_names
+// ignore_for_file: library_private_types_in_public_api, avoid_types_as_parameter_names, use_build_context_synchronously
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +11,8 @@ import 'package:pharmacy_app/screens/detail/instant_purchase.dart';
 import 'package:pharmacy_app/screens/detail/medicine_detail.dart';
 
 class BasketPage extends StatefulWidget {
-  const BasketPage({super.key});
+  final List<String>? productIds;
+  const BasketPage({super.key, this.productIds});
 
   @override
   _BasketPageState createState() => _BasketPageState();
@@ -21,7 +22,7 @@ class _BasketPageState extends State<BasketPage> {
   final OrderController _orderController = OrderController();
   final MedicineController _medicineController = MedicineController();
   final List<Map<String, dynamic>> _basketItems = [];
-  final List<String> _selectedItems = [];
+  List<String> _selectedItems = [];
   final Map<String, String?> _imageCache = {};
   final formatter = NumberFormat.decimalPattern();
   bool _isLoading = true;
@@ -31,6 +32,10 @@ class _BasketPageState extends State<BasketPage> {
   void initState() {
     super.initState();
     _loadBasketItems();
+
+    if (widget.productIds != null) {
+      _selectedItems = List<String>.from(widget.productIds!);
+    }
   }
 
   Future<void> _loadBasketItems() async {
@@ -527,28 +532,39 @@ class _BasketPageState extends State<BasketPage> {
     );
   }
 
-  void _purchaseSelectedItems() {
+  Future<void> _purchaseSelectedItems() async {
     if (_selectedItems.isEmpty) return;
 
-    // Collect selected items for purchase
-    List<Map<String, dynamic>> selectedOrderItems = _basketItems
-        .where((item) => _selectedItems.contains(item['medicine']['medSku']))
-        .map((item) {
-      return {
-        'medId': item['medicine']['medSku'],
-        'medName': item['medicine']['medName'],
-        'medPrice': item['medicine']['medPrice'],
-        'quantity': item['quantity'],
-      };
-    }).toList();
+    List<Map<String, dynamic>> selectedOrderItems = [];
+    double selectedTotalPrice = 0.0;
 
-    double selectedTotalPrice = selectedOrderItems.fold(0.0, (sum, item) {
-      double price = (item['medPrice'] is int)
-          ? (item['medPrice'] as int).toDouble()
-          : item['medPrice']?.toDouble() ?? 0.0;
-      int quantity = item['quantity'] ?? 0;
-      return sum + (price * quantity);
-    });
+    // Fetch and process each selected item
+    for (var item in _basketItems) {
+      if (_selectedItems.contains(item['medicine']['medSku'])) {
+        String medSku = item['medicine']['medSku'];
+        String medName = item['medicine']['medName'];
+        double medPrice = (item['medicine']['medOriginalPrice'] is int)
+            ? (item['medicine']['medOriginalPrice'] as int).toDouble()
+            : item['medicine']['medOriginalPrice']?.toDouble() ?? 0.0;
+        int quantity = item['quantity'] ?? 1;
+
+        // Fetch the discount asynchronously
+        double discount = await _medicineController.getMedicineDiscount(medSku);
+        double discountedPrice = medPrice - discount;
+
+        selectedOrderItems.add({
+          'medId': medSku,
+          'medName': medName,
+          'medPrice': medPrice, // Original price
+          'discount': discount, // Discount amount
+          'quantity': quantity, // Quantity
+          'discountedTotal': discountedPrice * quantity, // Discounted total
+        });
+
+        // Update the total price
+        selectedTotalPrice += discountedPrice * quantity;
+      }
+    }
 
     // Navigate to the PaymentPage with selected items
     Navigator.push(

@@ -267,13 +267,59 @@ class _ChiTietSpState extends State<ChiTietSp> {
                               horizontal: 16.0, vertical: 8.0),
                           child: Row(
                             children: [
-                              Text(
-                                '${formatter.format(medicineDetails!['medPrice'])} ₫',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red,
-                                ),
+                              FutureBuilder<double>(
+                                future: _medicineController.getMedicineDiscount(
+                                    medicineDetails!['medSku']),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Text('Loading...');
+                                  } else if (snapshot.hasError) {
+                                    return const Text('Error');
+                                  } else {
+                                    final discount = snapshot.data ?? 0.0;
+
+                                    if (discount == 0) {
+                                      // If no discount, show only the regular price
+                                      return Text(
+                                        '${formatter.format(medicineDetails!['medOriginalPrice'])} ₫',
+                                        style: const TextStyle(
+                                            fontSize: 28,
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold),
+                                      );
+                                    } else {
+                                      // If there's a discount, show the old price with a line-through and the discounted price
+                                      final discountedPrice =
+                                          medicineDetails!['medOriginalPrice'] -
+                                              discount;
+
+                                      return Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '${formatter.format(discountedPrice)} ₫',
+                                            style: const TextStyle(
+                                                fontSize: 28,
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(width: 15),
+                                          Text(
+                                            '${formatter.format(medicineDetails!['medOriginalPrice'])} ₫',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.grey,
+                                              decoration: TextDecoration
+                                                  .lineThrough, // Line-through style
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  }
+                                },
                               ),
                             ],
                           ),
@@ -459,6 +505,8 @@ class _ChiTietSpState extends State<ChiTietSp> {
   void _showProductBottomSheet(
       BuildContext context, Map<String, dynamic> product) {
     int quantity = 1;
+    double price = product['medOriginalPrice'];
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -470,166 +518,203 @@ class _ChiTietSpState extends State<ChiTietSp> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            return FutureBuilder<double>(
+              future:
+                  _medicineController.getMedicineDiscount(product['medSku']),
+              builder: (context, snapshot) {
+                double discount = 0.0;
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  discount = snapshot.data ?? 0.0;
+                }
+
+                double discountedPrice = price - discount;
+
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.network(
-                        _getImageUrl(product['medPrimaryImage']),
-                        height: 60,
-                        width: 60,
-                        fit: BoxFit.cover,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product['medName'] ?? 'Unknown Product',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      Row(
+                        children: [
+                          Image.network(
+                            _getImageUrl(product['medPrimaryImage']),
+                            height: 60,
+                            width: 60,
+                            fit: BoxFit.cover,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product['medName'] ?? 'Unknown Product',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  product['medIndications'] ?? 'No Indications',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                if (discount == 0) ...[
+                                  Text(
+                                    "${formatter.format(price)} ₫",
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ] else ...[
+                                  Text(
+                                    "${formatter.format(price)} ₫",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${formatter.format(discountedPrice)} ₫",
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
-                            Text(
-                              product['medIndications'] ?? 'No Indications',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            Text(
-                              "${formatter.format(product['medPrice'])} ₫",
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Phân loại sản phẩm",
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Phân loại sản phẩm",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => BaseFrame(
-                                    passedIndex: 1,
-                                    selectedCategory: product['medCategory'],
-                                  )));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF16B2A5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    child: Text(
-                      product['medCategory'] ?? 'Unknown Product',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Số lượng",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (quantity > 1) {
-                            setState(() {
-                              quantity--;
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.remove),
-                      ),
-                      Text('$quantity'), // Display current quantity
-                      IconButton(
-                        onPressed: () {
-                          if (quantity < product['medStockQuantity']) {
-                            setState(() {
-                              quantity++;
-                            });
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Vượt quá số lượng tồn kho'),
-                              ),
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.add),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () async {
-                          await _orderController.addToCart(
-                              product['medSku'].replaceAll(RegExp(r'\s+'), ''),
-                              quantity);
-                          Navigator.pop(
-                              context); // Close the bottom sheet after adding to cart
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Thêm sản phẩm thành công')),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.black,
-                          backgroundColor: Colors.grey[300],
-                        ),
-                        child: const Text('Thêm vào giỏ hàng'),
-                      ),
+                      const SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: () {
                           Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PaymentPage(
-                                items: [
-                                  {
-                                    'medId': product['medSku'],
-                                    'medName': product['medName'],
-                                    'medPrice': product['medPrice'],
-                                    'quantity': quantity,
-                                  }
-                                ],
-                                totalPrice: product['medPrice'] * quantity,
-                              ),
-                            ),
-                          );
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => BaseFrame(
+                                        passedIndex: 1,
+                                        selectedCategory:
+                                            product['medCategory'],
+                                      )));
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF20B6E8),
-                          foregroundColor: Colors.white,
+                          backgroundColor: const Color(0xFF16B2A5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                        child: const Text('Mua ngay'),
+                        child: Text(
+                          product['medCategory'] ?? 'Unknown Product',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Số lượng",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              if (quantity > 1) {
+                                setState(() {
+                                  quantity--;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.remove),
+                          ),
+                          Text('$quantity'), // Display current quantity
+                          IconButton(
+                            onPressed: () {
+                              if (quantity < product['medStockQuantity']) {
+                                setState(() {
+                                  quantity++;
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Vượt quá số lượng tồn kho'),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.add),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              await _orderController.addToCart(
+                                product['medSku']
+                                    .replaceAll(RegExp(r'\s+'), ''),
+                                quantity,
+                              );
+                              Navigator.pop(
+                                  context); // Close the bottom sheet after adding to cart
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Thêm sản phẩm thành công')),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.black,
+                              backgroundColor: Colors.grey[300],
+                            ),
+                            child: const Text('Thêm vào giỏ hàng'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PaymentPage(
+                                    items: [
+                                      {
+                                        'medId': product['medSku'],
+                                        'medName': product['medName'],
+                                        'medPrice': price, // Original price
+                                        'discount': discount, // Discount amount
+                                        'quantity': quantity,
+                                      }
+                                    ],
+                                    totalPrice: discountedPrice *
+                                        quantity, // Discounted total
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF20B6E8),
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Mua ngay'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );

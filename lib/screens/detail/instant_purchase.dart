@@ -30,8 +30,9 @@ class _PaymentPageState extends State<PaymentPage> {
   final OrderController _orderController =
       OrderController(); // Initialize OrderController
   final Map<String, String?> _imageCache = {};
-  double discount = 0; // Giảm giá mặc định là 0
   double totalPrice = 0; // Tổng giá ban đầu
+  double totalPriceBeforeDiscount = 0.0;
+  double totalDiscount = 0.0;
   String selectedPromoCode = ''; // Mã khuyến mãi đã chọn
   String note = ''; // Ghi chú của người dùng
   String selectedPaymentMethod = 'COD'; // Phương thức thanh toán đã chọn
@@ -47,30 +48,9 @@ class _PaymentPageState extends State<PaymentPage> {
   void applyPromoCode(String code, double discountPercentage) {
     setState(() {
       selectedPromoCode = code;
-      discount = discountPercentage * widget.totalPrice; // Tính giảm giá
-      totalPrice =
-          widget.totalPrice - discount; // Cập nhật tổng tiền sau giảm giá
+      totalPrice = widget.totalPrice;
     });
   }
-
-  // Danh sách mã khuyến mãi
-  final List<Map<String, dynamic>> promoCodes = [
-    {
-      'code': 'DISCOUNT10',
-      'description': 'Giảm 10%',
-      'discountPercentage': 0.1
-    },
-    {
-      'code': 'DISCOUNT20',
-      'description': 'Giảm 20%',
-      'discountPercentage': 0.2
-    },
-    {
-      'code': 'DISCOUNT50',
-      'description': 'Giảm 50%',
-      'discountPercentage': 0.5
-    },
-  ];
 
   // Danh sách các phương thức thanh toán
   final List<String> paymentMethods = [
@@ -81,52 +61,20 @@ class _PaymentPageState extends State<PaymentPage> {
     'Mastercard',
   ];
 
-  // Hiển thị danh sách mã khuyến mãi
-  void showPromoCodeBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
-      ),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Chọn mã khuyến mãi',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              ListView.builder(
-                shrinkWrap: true, // Để danh sách không chiếm hết chiều cao
-                itemCount: promoCodes.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final promo = promoCodes[index];
-                  return ListTile(
-                    title: Text(promo['description']),
-                    subtitle: Text(promo['code']),
-                    onTap: () {
-                      applyPromoCode(
-                          promo['code'], promo['discountPercentage']);
-                      Navigator.pop(context); // Đóng bottom sheet
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    totalPriceBeforeDiscount = 0.0;
+    totalDiscount = 0.0;
+    // Loop through items to calculate totals
+    for (var item in widget.items) {
+      double price =
+          double.tryParse('${item['medPrice'] ?? item['price']}') ?? 0.0;
+      int quantity = item['quantity'] ?? 0;
+      double discount = item['discount'] ?? 0;
+
+      totalPriceBeforeDiscount += price * quantity;
+      totalDiscount += discount * quantity;
+    }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: const CustomAppBar(title: 'THANH TOÁN', logo: Icons.attach_money),
@@ -246,6 +194,7 @@ class _PaymentPageState extends State<PaymentPage> {
                             '${item['medPrice'] ?? item['price']}') ??
                         0.0;
                     int quantity = item['quantity'] ?? 0;
+                    double discount = item['discount'] ?? 0;
 
                     // Fetch image from cache or API
                     String? imageUrl = _imageCache[id];
@@ -275,13 +224,40 @@ class _PaymentPageState extends State<PaymentPage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text('Số lượng: $quantity'),
-                      trailing: Text(
-                        '${formatter.format(price)} ₫',
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      trailing: discount == 0
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${formatter.format(price)} ₫",
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${formatter.format(price)} ₫",
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                Text(
+                                  "${formatter.format(price - discount)} ₫",
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                     );
                   },
                 ),
@@ -362,8 +338,9 @@ class _PaymentPageState extends State<PaymentPage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
-            _buildPaymentDetailRow('Tổng tiền sản phẩm', widget.totalPrice),
-            _buildPaymentDetailRow('Giảm giá', -discount),
+            _buildPaymentDetailRow(
+                'Tổng tiền sản phẩm', totalPriceBeforeDiscount),
+            _buildPaymentDetailRow('Giảm giá', -totalDiscount),
             const Divider(),
             _buildPaymentDetailRow('Tổng thanh toán', totalPrice, isBold: true),
 
